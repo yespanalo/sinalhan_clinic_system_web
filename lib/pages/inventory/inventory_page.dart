@@ -1,32 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/animation/animation_controller.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:flutter/src/widgets/ticker_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:intl/intl.dart';
-import 'package:sinalhan_clinic_system_web/constants.dart';
 
-import 'forms/individualpatientform.dart';
+import '../../constants.dart';
 
-class PatientRecords extends StatefulWidget {
-  const PatientRecords({
-    Key? key,
+class Inventory_Page extends StatefulWidget {
+  const Inventory_Page({
+    super.key,
     required TimeOfDay timeOfDay,
     required this.period,
-  })  : _timeOfDay = timeOfDay,
-        super(key: key);
-
+  }) : _timeOfDay = timeOfDay;
   final TimeOfDay _timeOfDay;
   final String period;
   @override
-  State<PatientRecords> createState() => _PatientRecordsState();
+  State<Inventory_Page> createState() => _Inventory_PageState();
 }
 
-class _PatientRecordsState extends State<PatientRecords> {
+class _Inventory_PageState extends State<Inventory_Page>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
   //Variables
-  String dropdownValue = 'Individual Profile Record';
+  String dropdownValue = 'Medicine List';
 
 //Functions
   String formatTimeOfDay(TimeOfDay tod) {
@@ -34,6 +35,29 @@ class _PatientRecordsState extends State<PatientRecords> {
     final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
     final format = DateFormat.jm(); //"6:00 AM"
     return format.format(dt);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  dynamic returnRecord() {
+    if (dropdownValue == 'Medicine List') {
+      return MedicineSupply();
+    }
+    // else if (dropdownValue == 'Supply Overview') {
+    //   return SupplyOverview();
+    // } else if (dropdownValue == 'Medicine Distribution') {
+    //   return MedicineDistribution();
+    // }
   }
 
   @override
@@ -67,7 +91,7 @@ class _PatientRecordsState extends State<PatientRecords> {
                             color: Color(0xff1B1C1E)),
                       ),
                       Text(
-                        "Patient Records",
+                        "Inventory",
                         style: TextStyle(
                             fontFamily: "Mont",
                             fontSize: 15,
@@ -107,14 +131,34 @@ class _PatientRecordsState extends State<PatientRecords> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Patients",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontFamily: 'Mont',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20),
-                      ),
+                      DropdownButton(
+                          value: dropdownValue,
+                          underline: Container(
+                            color: Colors.white,
+                          ),
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontFamily: 'Mont',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              dropdownValue = newValue!;
+                            });
+                          },
+                          items: <String>[
+                            'Medicine List',
+                            'Supply Overview',
+                            'Medicine Distribution'
+                          ].map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value,
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            );
+                          }).toList()),
                       const SizedBox(
                         height: 5,
                       ),
@@ -122,7 +166,7 @@ class _PatientRecordsState extends State<PatientRecords> {
                       const SizedBox(
                         height: 5,
                       ),
-                      IndividualPatientRecord(context)
+                      returnRecord()
                     ],
                   ),
                 )
@@ -133,15 +177,15 @@ class _PatientRecordsState extends State<PatientRecords> {
       ),
     );
   }
-}
 
-Container IndividualPatientRecord(BuildContext context) {
-  List<Map<String, dynamic>> _dataList = [];
-  String _searchText = '';
-  final Stream<QuerySnapshot> _patientsStream =
-      FirebaseFirestore.instance.collection('patients').snapshots();
-  return Container(
-    child: Column(
+  Column MedicineSupply() {
+    ScrollController datatable = new ScrollController();
+    List<Map<String, dynamic>> _dataList = [];
+    String _searchText = '';
+    final Stream<QuerySnapshot> _medicineStream =
+        FirebaseFirestore.instance.collection('medicine').snapshots();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -158,9 +202,9 @@ Container IndividualPatientRecord(BuildContext context) {
                 // onChanged: (value) {
                 //   setState(() {
                 //     if (searchController.text.length == 0) {
-                //       patients = getPatientList();
+                //       medicine = getMedicineList();
                 //     } else {
-                //       patients = filterTableByDate();
+                //       medicine = filterTableByDate();
                 //     }
                 //   });
                 // },
@@ -181,44 +225,63 @@ Container IndividualPatientRecord(BuildContext context) {
                 ),
               ),
             ),
-            SizedBox(
-              width: 100,
-              child: TextButton(
-                  style: ButtonStyle(
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(15)),
-                    // foregroundColor:
-                    //     MaterialStateProperty.all<Color>(Colors.red),
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(secondaryaccent),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: secondaryaccent),
+            Row(
+              children: [
+                SizedBox(
+                  width: 100,
+                  child: TextButton(
+                      style: ButtonStyle(
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(15)),
+                        // foregroundColor:
+                        //     MaterialStateProperty.all<Color>(Colors.red),
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(secondaryaccent),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18.0),
+                            side: BorderSide(color: secondaryaccent),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      new MaterialPageRoute(
-                          builder: (_) => new IndividualPatientRecordForm()),
-                    );
-                  },
-                  child: Text("Add",
-                      style: TextStyle(fontSize: 16, color: Colors.white))),
-            )
-
-            // )
+                      onPressed: () {},
+                      child: Text("Add",
+                          style: TextStyle(fontSize: 16, color: Colors.white))),
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+              ],
+            ),
           ],
         ),
-        const SizedBox(
-          height: 10,
-        ),
-        const Divider(),
+        // Container(
+        //   margin: EdgeInsets.only(left: 5),
+        //   child: DropdownButtonHideUnderline(
+        //     child: DropdownButton<String>(
+        //       value: filterDropdownValue,
+        //       icon: null,
+        //       style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+        //       elevation: 16,
+        //       onChanged: (String? value) {
+        //         setState(() {
+        //           filterDropdownValue = value!;
+        //         });
+        //       },
+        //       items: filterList.map<DropdownMenuItem<String>>((String value) {
+        //         return DropdownMenuItem<String>(
+        //           child: Text(value),
+        //           value: value,
+        //         );
+        //       }).toList(),
+        //     ),
+        //   ),
+        // ),
         SizedBox(
           // height: 360,
           child: StreamBuilder<QuerySnapshot>(
-              stream: _patientsStream,
+              stream: _medicineStream,
               builder: (BuildContext context,
                   AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
@@ -235,39 +298,29 @@ Container IndividualPatientRecord(BuildContext context) {
                   return data;
                 }).toList();
 
-                if (_searchText.isNotEmpty) {
-                  _dataList = _dataList.where((row) {
-                    return row['email'].toString().contains(_searchText) ||
-                        row['first name'].toString().contains(_searchText) ||
-                        row['last name'].toString().contains(_searchText) ||
-                        row['mobile number'].toString().contains(_searchText) ||
-                        row['type'].toString().contains(_searchText);
-                  }).toList();
-                }
+                // if (_searchText.isNotEmpty) {
+                //   _dataList = _dataList.where((row) {
+                //     return row['email'].toString().contains(_searchText) ||
+                //         row['first name'].toString().contains(_searchText) ||
+                //         row['last name'].toString().contains(_searchText) ||
+                //         row['mobile number'].toString().contains(_searchText) ||
+                //         row['type'].toString().contains(_searchText);
+                //   }).toList();
+                // }
 
                 int rowsPerPage = snapshot.data!.size;
 
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     double columnSpacing = constraints.maxWidth /
-                        (8.4 + 1); // add 1 for the action column
+                        (3 + 1); // add 1 for the action column
 
                     return PaginatedDataTable(
                       columnSpacing: columnSpacing,
                       columns: [
                         DataColumn(
                             label: Text(
-                          'Name',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        )),
-                        DataColumn(
-                            label: Text(
-                          'Email',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        )),
-                        DataColumn(
-                            label: Text(
-                          'Mobile Number',
+                          'Medicine name',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         )),
                         DataColumn(
@@ -275,7 +328,16 @@ Container IndividualPatientRecord(BuildContext context) {
                           'Category',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         )),
-                        DataColumn(label: Text('')),
+                        DataColumn(
+                            label: Text(
+                          'Stock',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        )),
+                        DataColumn(
+                            label: Text(
+                          '',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        )),
                       ],
                       source: _MyDataTableSource(_dataList, context),
                       rowsPerPage: rowsPerPage > 5 ? 5 : rowsPerPage,
@@ -285,8 +347,8 @@ Container IndividualPatientRecord(BuildContext context) {
               }),
         )
       ],
-    ),
-  );
+    );
+  }
 }
 
 class _MyDataTableSource extends DataTableSource {
@@ -303,11 +365,9 @@ class _MyDataTableSource extends DataTableSource {
     final Map<String, dynamic> data = _dataList[index];
 
     return DataRow.byIndex(index: index, cells: <DataCell>[
-      DataCell(Text(
-          data['first name'].toString() + " " + data['last name'].toString())),
-      DataCell(Text(data['email'].toString())),
-      DataCell(Text(data['contact number'].toString())),
+      DataCell(Text(data['medicine name'].toString())),
       DataCell(Text(data['category'].toString())),
+      DataCell(Text(data['stock in'].toString())),
       DataCell(
         Row(
           children: [
