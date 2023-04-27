@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:intl/intl.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 import 'forms/individualpatientform.dart';
 
@@ -34,6 +35,12 @@ class _PatientRecordsState extends State<PatientRecords> {
     final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
     final format = DateFormat.jm(); //"6:00 AM"
     return format.format(dt);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
   }
 
   @override
@@ -122,7 +129,7 @@ class _PatientRecordsState extends State<PatientRecords> {
                       const SizedBox(
                         height: 5,
                       ),
-                      IndividualPatientRecord(context)
+                      IndividualPatientRecord(context),
                     ],
                   ),
                 )
@@ -181,6 +188,7 @@ Container IndividualPatientRecord(BuildContext context) {
                 ),
               ),
             ),
+            TextButton(onPressed: () {}, child: Text("Test")),
             SizedBox(
               width: 100,
               child: TextButton(
@@ -317,16 +325,12 @@ class _MyDataTableSource extends DataTableSource {
               child: IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  // Navigator.of(_context).push(
-                  //   new MaterialPageRoute(
-                  //     builder: (_) => UpdateUser(
-                  //         firstName: data['first name'].toString(),
-                  //         lastName: data['last name'].toString(),
-                  //         email: data['email'],
-                  //         mobileNumber: data['mobile number'].toString(),
-                  //         uid: data['uid'].toString()),
-                  //   ),
-                  // );
+                  Navigator.of(_context).push(
+                    MaterialPageRoute(
+                        builder: (_) => PatientProfiel(
+                              uid: data['uid'].toString(),
+                            )),
+                  );
                   // Edit user logic
                 },
               ),
