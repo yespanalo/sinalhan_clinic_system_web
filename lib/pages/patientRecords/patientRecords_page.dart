@@ -188,7 +188,6 @@ Container IndividualPatientRecord(BuildContext context) {
                 ),
               ),
             ),
-            TextButton(onPressed: () {}, child: Text("Test")),
             SizedBox(
               width: 100,
               child: TextButton(

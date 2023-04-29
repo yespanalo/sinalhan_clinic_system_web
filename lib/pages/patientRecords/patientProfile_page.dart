@@ -39,7 +39,6 @@ class _PatientProfielState extends State<PatientProfiel> {
       patientName = data?['first name'] ?? '';
     });
     // Using the null-aware operator and providing a default value
-    print(patientName);
   }
 
   @override
@@ -78,6 +77,21 @@ class _PatientProfielState extends State<PatientProfiel> {
                 ],
               ),
             ),
+            SizedBox(
+              height: 15,
+            ),
+            Container(
+              color: Colors.white,
+              width: MediaQuery.of(context).size.width / 1.5,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(patientName),
+                  ],
+                ),
+              ),
+            )
           ],
         ),
       ),
