@@ -1,21 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:sinalhan_clinic_management/constants.dart';
+
+import '../../constants.dart';
 
 class PatientProfiel extends StatefulWidget {
   const PatientProfiel({
+    required this.uid,
     super.key,
   });
 
-  // final String uid;
+  final String uid;
   @override
   State<PatientProfiel> createState() => _PatientProfielState();
 }
 
 class _PatientProfielState extends State<PatientProfiel> {
+  late Future<DocumentSnapshot> _userDataFuture;
   String formatTimeOfDay(TimeOfDay tod) {
     final now = new DateTime.now();
     final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
@@ -27,230 +31,146 @@ class _PatientProfielState extends State<PatientProfiel> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    // userData();
+    _userDataFuture =
+        FirebaseFirestore.instance.collection('patients').doc(widget.uid).get();
   }
-
-  // late String patientName = "";
-  // void userData() async {
-  //   final DocumentSnapshot snapshot = await FirebaseFirestore.instance
-  //       .collection('patients')
-  //       .doc(widget.uid)
-  //       .get();
-  //   final Map<String, dynamic>? data = snapshot.data() as Map<String,
-  //       dynamic>?; // Move the "as" keyword outside of the parentheses
-  //   setState(() {
-  //     patientName = data?['first name'] ?? '';
-  //   });
-  //   // Using the null-aware operator and providing a default value
-  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 216, 216, 216),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(15.0),
-                color: Colors.white,
-                child: Row(
+      body: FutureBuilder(
+        future: FirebaseFirestore.instance
+            .collection('patients')
+            .doc(widget.uid)
+            .get(),
+        builder:
+            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data?.data() == null) {
+            return Center(child: Text('No Data Found'));
+          } else {
+            final data = snapshot.data!.data() as Map<String, dynamic>;
+            // Object? data = snapshot.data?.data();
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Barangay Sinalhan Clinic",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Mont",
-                              fontSize: 24,
-                              color: Color(0xff1B1C1E)),
-                        ),
-                        Text(
-                          "Patient Records",
-                          style: TextStyle(
-                              fontFamily: "Mont",
-                              fontSize: 15,
-                              color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(20.0), // Change the value as needed
-                ),
-                width: MediaQuery.of(context).size.width / 1.5,
-                // height: MediaQuery.of(context).size.height / 1,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 50, left: 50, right: 50),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 150,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: AssetImage("images/mina.jpg"),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 30,
-                            ),
-                            Container(
-                              height: 150,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Text(
-                                    "Mina Sharon Myoi".toUpperCase(),
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.5,
-                                        wordSpacing: 5.0),
-                                  ),
-                                  Text(
-                                    "26 yrs, female · March 24, 1997",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                        letterSpacing: 1,
-                                        wordSpacing: 5.0),
-                                  ),
-                                  Text(
-                                    "#61, Marinig Cabuyao Laguna",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                        letterSpacing: 1,
-                                        wordSpacing: 5.0),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  FontAwesomeIcons.edit,
-                                  color: secondaryaccent,
-                                ))
-                          ],
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Divider(
-                          color: secondaryaccent,
-                          thickness: 2,
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(left: 50, right: 50),
-                          child: Column(
+                    Container(
+                      padding: const EdgeInsets.all(15.0),
+                      color: Colors.white,
+                      child: Row(
+                        children: [
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "General Information".toUpperCase(),
+                                "Barangay Sinalhan Clinic",
                                 style: TextStyle(
-                                    fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.5,
-                                    wordSpacing: 5.0),
+                                    fontFamily: "Mont",
+                                    fontSize: 24,
+                                    color: Color(0xff1B1C1E)),
                               ),
                               Text(
-                                "Individual Patient Record",
-                                style: TextStyle(color: Colors.grey),
+                                "Patient Records",
+                                style: TextStyle(
+                                    fontFamily: "Mont",
+                                    fontSize: 15,
+                                    color: Colors.grey),
                               ),
-                              SizedBox(
-                                height: 40,
-                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                            20.0), // Change the value as needed
+                      ),
+                      width: MediaQuery.of(context).size.width / 1.5,
+                      // height: MediaQuery.of(context).size.height / 1,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(top: 50, left: 50, right: 50),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Informations("Single", "Civil Satus"),
-                                      SizedBox(
-                                        height: 40,
+                                  Container(
+                                    height: 150,
+                                    width: 150,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: AssetImage("images/mina.jpg"),
                                       ),
-                                      Informations(
-                                          "minariMiyoui@gmail.com", "Email"),
-                                      SizedBox(
-                                        height: 40,
-                                      ),
-                                      Informations(
-                                          "Akira Myoui", "Father's Name"),
-                                    ],
+                                    ),
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Informations(
-                                          "Roman Catholic", "Religion"),
-                                      SizedBox(
-                                        height: 40,
-                                      ),
-                                      Informations("College Graduate",
-                                          "Educational Attainment"),
-                                      SizedBox(
-                                        height: 40,
-                                      ),
-                                      Informations(
-                                          "Myoui Sachiko", "Mother's Name"),
-                                    ],
+                                  SizedBox(
+                                    width: 30,
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Informations("09690118897", "Address"),
-                                      SizedBox(height: 40),
-                                      Informations("Kpop Artist", "Occupation"),
-                                      SizedBox(height: 40),
-                                      Informations("Female", "Gender")
-                                    ],
+                                  Container(
+                                    height: 150,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          data['gender'].toString(),
+                                          // data['first name'] +
+                                          //     " " +
+                                          //     data['last name'],
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.5,
+                                              wordSpacing: 5.0),
+                                        ),
+                                        Text(
+                                          "26 yrs, female · March 24, 1997",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 12,
+                                              letterSpacing: 1,
+                                              wordSpacing: 5.0),
+                                        ),
+                                        Text(
+                                          "#61, Marinig Cabuyao Laguna",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 12,
+                                              letterSpacing: 1,
+                                              wordSpacing: 5.0),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  Spacer(),
+                                  IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(
+                                        FontAwesomeIcons.edit,
+                                        color: secondaryaccent,
+                                      ))
                                 ],
-                              ),
-                              SizedBox(
-                                height: 40,
-                              ),
-                              TextButton(
-                                child: Text(
-                                  "View More",
-                                  style: TextStyle(color: secondaryaccent),
-                                ),
-                                onPressed: () {},
                               ),
                               SizedBox(
                                 height: 20,
@@ -262,32 +182,146 @@ class _PatientProfielState extends State<PatientProfiel> {
                               SizedBox(
                                 height: 20,
                               ),
-                              Text(
-                                "Visit History",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.5,
-                                    wordSpacing: 5.0),
+                              Container(
+                                margin: EdgeInsets.only(left: 50, right: 50),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "General Information".toUpperCase(),
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.5,
+                                          wordSpacing: 5.0),
+                                    ),
+                                    Text(
+                                      "Individual Patient Record",
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                    SizedBox(
+                                      height: 40,
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Informations(data['civil status'],
+                                                "Civil Status"),
+                                            SizedBox(
+                                              height: 40,
+                                            ),
+                                            Informations(
+                                                data['email'], "Email"),
+                                            SizedBox(
+                                              height: 40,
+                                            ),
+                                            Informations(data['fathers name'],
+                                                "Father's Name"),
+                                          ],
+                                        ),
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Informations(
+                                                data['religion'], "Religion"),
+                                            SizedBox(
+                                              height: 40,
+                                            ),
+                                            Informations(
+                                                data['educational attainment'],
+                                                "Educational Attainment"),
+                                            SizedBox(
+                                              height: 40,
+                                            ),
+                                            Informations(data['mothers name'],
+                                                "Mother's Name"),
+                                          ],
+                                        ),
+                                        Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Informations(data['contact number'],
+                                                "Contact number"),
+                                            SizedBox(height: 40),
+                                            Informations(data['occupation'],
+                                                "Occupation"),
+                                            SizedBox(height: 40),
+                                            Informations(
+                                                data['gender'].toString(),
+                                                "Gender")
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 40,
+                                    ),
+                                    TextButton(
+                                      child: Text(
+                                        "View More",
+                                        style:
+                                            TextStyle(color: secondaryaccent),
+                                      ),
+                                      onPressed: () {},
+                                    ),
+                                  ],
+                                ),
                               ),
                               SizedBox(
                                 height: 20,
                               ),
-                              VisitHistoryCard(context)
+                              Divider(
+                                color: secondaryaccent,
+                                thickness: 2,
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 50, right: 50),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Visit History",
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.5,
+                                          wordSpacing: 5.0),
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    VisitHistoryCard(context)
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
-            ],
-          ),
-        ),
+            );
+          }
+        },
       ),
     );
   }
