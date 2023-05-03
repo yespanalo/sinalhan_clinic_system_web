@@ -40,6 +40,7 @@ dependencies:
   font_awesome_flutter: ^10.4.0
   sweetsheet: ^0.4.0
   responsive_framework: ^0.1.9
+  firebase_storage: ^11.0.16
 
 dev_dependencies:
   flutter_test:

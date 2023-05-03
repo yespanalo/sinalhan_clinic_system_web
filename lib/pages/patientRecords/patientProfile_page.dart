@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -33,6 +35,26 @@ class _PatientProfielState extends State<PatientProfiel> {
     super.initState();
     _userDataFuture =
         FirebaseFirestore.instance.collection('patients').doc(widget.uid).get();
+  }
+
+  Future<Widget> _getImageWidget() async {
+    FirebaseStorage storage = FirebaseStorage.instanceFor(
+      bucket: 'gs://sinalhan-clinic-system.appspot.com',
+    );
+    Reference ref = storage.ref().child("Minari.png");
+    String downloadUrl = await ref.getDownloadURL();
+
+    return Container(
+      height: 150,
+      width: 150,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: NetworkImage(downloadUrl),
+        ),
+      ),
+    );
   }
 
   @override
@@ -111,16 +133,18 @@ class _PatientProfielState extends State<PatientProfiel> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    height: 150,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: AssetImage("images/mina.jpg"),
-                                      ),
-                                    ),
+                                  FutureBuilder<Widget>(
+                                    future: _getImageWidget(),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<Widget> snapshot) {
+                                      if (snapshot.hasData) {
+                                        return snapshot.data!;
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        return CircularProgressIndicator();
+                                      }
+                                    },
                                   ),
                                   SizedBox(
                                     width: 30,
@@ -304,7 +328,8 @@ class _PatientProfielState extends State<PatientProfiel> {
                                     SizedBox(
                                       height: 20,
                                     ),
-                                    VisitHistoryCard(context)
+                                    VisitHistoryList(
+                                        patientId: "IPR-f6bjmqLHhHppEAKzyFsL")
                                   ],
                                 ),
                               ),
@@ -326,17 +351,120 @@ class _PatientProfielState extends State<PatientProfiel> {
     );
   }
 
-  MouseRegion VisitHistoryCard(BuildContext context) {
+  Column Informations(value, key) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "$value",
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+              wordSpacing: 5.0),
+        ),
+        SizedBox(height: 10),
+        Text(
+          "$key",
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        )
+      ],
+    );
+  }
+}
+
+class VisitHistoryDialog extends StatelessWidget {
+  final String patientId;
+  final String visitId;
+  final String visitDate;
+
+  VisitHistoryDialog(
+      {required this.patientId,
+      required this.visitId,
+      required this.visitDate});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Visit History Details'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Container(
+              width: MediaQuery.of(context).size.width / 2,
+              height: MediaQuery.of(context).size.height / 4,
+              child: Column(
+                children: [
+                  Text(
+                    visitDate,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('Approve'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class VisitHistoryList extends StatelessWidget {
+  final String patientId;
+
+  VisitHistoryList({required this.patientId});
+
+  Widget VisitHistoryCard(BuildContext context, DocumentSnapshot visitHistory) {
+    Object visitData = visitHistory.data()!;
+    var visitTimestamp =
+        (visitData as Map<String, dynamic>)?['visit date'] as Timestamp?;
+    var visitDateTime = visitTimestamp?.toDate();
+    var formattedDate = DateFormat('MMMM d, y').format(visitDateTime!);
+
+    var visitDay = visitDateTime?.day.toString() ?? '';
+    var visitMonth =
+        visitDateTime != null ? DateFormat('MMMM').format(visitDateTime) : '';
+    var visitYear = visitDateTime?.year.toString() ?? '';
+    var visitDayOfWeek =
+        visitDateTime != null ? DateFormat('EEEE').format(visitDateTime) : '';
+    var reason = (visitData as Map<String, dynamic>)?['reason of visit'] ?? '';
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
+        onTap: () {
+          Future.delayed(Duration(milliseconds: 100)).then(
+            (value) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return Builder(
+                    builder: (context) {
+                      return VisitHistoryDialog(
+                        patientId: patientId,
+                        visitId: visitData['visit id'],
+                        visitDate: formattedDate,
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          );
+        },
         child: Container(
           padding: const EdgeInsets.only(left: 50, right: 50),
           margin: EdgeInsets.only(bottom: 20),
           decoration: BoxDecoration(
             color: Color.fromARGB(255, 243, 243, 243),
-            borderRadius:
-                BorderRadius.circular(20.0), // Change the value as needed
+            borderRadius: BorderRadius.circular(20.0),
           ),
           width: MediaQuery.of(context).size.width / 1.5,
           height: MediaQuery.of(context).size.height / 6,
@@ -345,7 +473,7 @@ class _PatientProfielState extends State<PatientProfiel> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Informations("Hyperacidity", "Reason of Visit"),
+                  Informations(reason, "Reason of Visit"),
                 ],
               ),
               Spacer(),
@@ -354,14 +482,14 @@ class _PatientProfielState extends State<PatientProfiel> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "22",
+                    visitDay,
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                   ),
                   SizedBox(
                     height: 5,
                   ),
                   Text(
-                    "April 2023".toUpperCase(),
+                    visitMonth.toUpperCase() + " " + visitYear.toUpperCase(),
                     style: TextStyle(
                         letterSpacing: 1.5,
                         fontWeight: FontWeight.w600,
@@ -371,7 +499,7 @@ class _PatientProfielState extends State<PatientProfiel> {
                     height: 5,
                   ),
                   Text(
-                    "Monday",
+                    visitDayOfWeek,
                     style: TextStyle(
                         letterSpacing: 1.5,
                         fontWeight: FontWeight.w600,
@@ -404,6 +532,38 @@ class _PatientProfielState extends State<PatientProfiel> {
           style: TextStyle(color: Colors.grey, fontSize: 12),
         )
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height / 2,
+      child: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('patients')
+            .doc(patientId)
+            .collection('visit history')
+            .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return SingleChildScrollView(
+            child: Column(
+              children: List.generate(
+                snapshot.data!.docs.length,
+                (index) {
+                  DocumentSnapshot visitHistory = snapshot.data!.docs[index];
+                  return VisitHistoryCard(context, visitHistory);
+                },
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

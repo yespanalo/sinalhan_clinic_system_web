@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,17 +27,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
-      // home: StreamBuilder(
-      //   stream: FirebaseAuth.instance.authStateChanges(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.hasData) {
-      //       return Home();
-      //     } else {
-      //       return LoginPage();
-      //     }
-      //   },
-      // ),
+      // home: LoginPage(),
+
+      home: PatientProfiel(uid: "IPR-f6bjmqLHhHppEAKzyFsL"),
     );
   }
 }
