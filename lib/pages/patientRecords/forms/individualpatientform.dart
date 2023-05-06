@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sinalhan_clinic_system_web/function/firebaseFunctions.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class IndividualPatientRecordForm extends StatefulWidget {
   const IndividualPatientRecordForm({Key? key}) : super(key: key);
@@ -85,6 +86,9 @@ class _IndividualPatientRecordFormState
       'educational attainment': EducationDropdownValue,
       'religion': religionController.text,
       'occupation': occupationController.text,
+      "additional info": {
+        "alcohol": alcoholValue,
+      }
     });
   }
 
@@ -614,7 +618,7 @@ class _IndividualPatientRecordFormState
       margin: EdgeInsets.only(top: 10, left: 30, right: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(
-          "Access to family planning?",
+          "Access to  planning?",
           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
         SizedBox(
