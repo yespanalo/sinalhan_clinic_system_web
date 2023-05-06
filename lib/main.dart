@@ -27,9 +27,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // home: LoginPage(),
+      home: LoginPage(),
 
-      home: PatientProfiel(uid: "IPR-f6bjmqLHhHppEAKzyFsL"),
+      // home: PatientProfiel(uid: "IPR-XwEzUQu2kTKFpOSW44ph"),
     );
   }
 }
