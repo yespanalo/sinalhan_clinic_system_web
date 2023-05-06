@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientform.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 void main() async {
@@ -27,9 +28,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
 
-      // home: PatientProfiel(uid: "IPR-XwEzUQu2kTKFpOSW44ph"),
+      //home: LoginPage(),
+
+      home: IndividualPatientRecordForm(),
+
     );
   }
 }
