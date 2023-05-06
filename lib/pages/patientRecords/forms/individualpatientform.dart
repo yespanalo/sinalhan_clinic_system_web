@@ -20,6 +20,11 @@ class _IndividualPatientRecordFormState
   TextEditingController emailController = new TextEditingController();
   TextEditingController mobileNumber = new TextEditingController();
   TextEditingController birthdateController = new TextEditingController();
+  TextEditingController streetController = new TextEditingController();
+  TextEditingController cityController = new TextEditingController();
+  TextEditingController provinceController = new TextEditingController();
+  TextEditingController religionController = new TextEditingController();
+  TextEditingController occupationController = new TextEditingController();
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = genderList.first;
   var _text = '';
@@ -68,7 +73,18 @@ class _IndividualPatientRecordFormState
       'category': "Individual Patient Record",
       'email': emailController.text,
       'contact number': mobileNumber.text,
-      'uid': customID
+      'uid': customID,
+      'address': streetController.text +
+          ", " +
+          cityController.text +
+          ", " +
+          provinceController.text,
+      'gender': genderDropdownValue,
+      'birthdate': birthdateController.text,
+      'civil status': CivilStatusDropdownValue,
+      'educational attainment': EducationDropdownValue,
+      'religion': religionController.text,
+      'occupation': occupationController.text,
     });
   }
 
@@ -182,7 +198,11 @@ class _IndividualPatientRecordFormState
                             ]),
                       ),
                       patientGender(),
-                      Address(),
+                      Address(
+                        streetAddress: streetController,
+                        cityAddress: cityController,
+                        provinceAddress: provinceController,
+                      ),
                       phoneNumber(
                         contactNumber: mobileNumber,
                       ),
@@ -196,8 +216,13 @@ class _IndividualPatientRecordFormState
                       //   nameOf: "Mother's Name",
                       // ),
                       civilStatus(),
-                      religion(),
-                      occupation(),
+                      religion(
+                        religionController: religionController,
+                      ),
+
+                      occupation(
+                        occupationController: occupationController,
+                      ),
                       educationalAttainment(),
                       Header(
                         text: "Patient Medical History",
@@ -1570,7 +1595,9 @@ class patiendMedicalHistory extends StatelessWidget {
 class occupation extends StatelessWidget {
   const occupation({
     Key? key,
+    required this.occupationController,
   }) : super(key: key);
+  final TextEditingController occupationController;
 
   @override
   Widget build(BuildContext context) {
@@ -1590,6 +1617,7 @@ class occupation extends StatelessWidget {
             height: 40,
             width: 330,
             child: TextField(
+              controller: occupationController,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderSide:
@@ -1612,7 +1640,10 @@ class occupation extends StatelessWidget {
 class religion extends StatelessWidget {
   const religion({
     Key? key,
+    required this.religionController,
   }) : super(key: key);
+
+  final TextEditingController religionController;
 
   @override
   Widget build(BuildContext context) {
@@ -1632,6 +1663,7 @@ class religion extends StatelessWidget {
             height: 40,
             width: 330,
             child: TextField(
+              controller: religionController,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderSide:
@@ -1756,7 +1788,14 @@ class phoneNumber extends StatelessWidget {
 class Address extends StatelessWidget {
   const Address({
     Key? key,
+    required this.streetAddress,
+    required this.cityAddress,
+    required this.provinceAddress,
   }) : super(key: key);
+
+  final TextEditingController streetAddress;
+  final TextEditingController cityAddress;
+  final TextEditingController provinceAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -1779,6 +1818,7 @@ class Address extends StatelessWidget {
                 width: double.infinity,
                 height: 40,
                 child: TextField(
+                  controller: streetAddress,
                   decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
                         borderSide:
@@ -1812,6 +1852,7 @@ class Address extends StatelessWidget {
                         width: 330,
                         height: 40,
                         child: TextField(
+                          controller: cityAddress,
                           decoration: InputDecoration(
                               enabledBorder: OutlineInputBorder(
                                 borderSide: const BorderSide(
@@ -1841,6 +1882,7 @@ class Address extends StatelessWidget {
                         width: 330,
                         height: 40,
                         child: TextField(
+                          controller: provinceAddress,
                           decoration: InputDecoration(
                               enabledBorder: OutlineInputBorder(
                                 borderSide: const BorderSide(
