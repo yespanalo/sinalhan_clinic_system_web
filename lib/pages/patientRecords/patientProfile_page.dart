@@ -41,7 +41,7 @@ class _PatientProfielState extends State<PatientProfiel> {
     FirebaseStorage storage = FirebaseStorage.instanceFor(
       bucket: 'gs://sinalhan-clinic-system.appspot.com',
     );
-    Reference ref = storage.ref().child("Minari.png");
+    Reference ref = storage.ref().child(widget.uid + '.png');
     String downloadUrl = await ref.getDownloadURL();
 
     return Container(
@@ -88,6 +88,7 @@ class _PatientProfielState extends State<PatientProfiel> {
                       color: Colors.white,
                       child: Row(
                         children: [
+                          BackButton(),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -140,7 +141,18 @@ class _PatientProfielState extends State<PatientProfiel> {
                                       if (snapshot.hasData) {
                                         return snapshot.data!;
                                       } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
+                                        return Container(
+                                          height: 150,
+                                          width: 150,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: AssetImage(
+                                                  'images/place.jpg'),
+                                            ),
+                                          ),
+                                        );
                                       } else {
                                         return CircularProgressIndicator();
                                       }
@@ -158,10 +170,10 @@ class _PatientProfielState extends State<PatientProfiel> {
                                           MainAxisAlignment.spaceAround,
                                       children: [
                                         Text(
-                                          data['gender'].toString(),
-                                          // data['first name'] +
-                                          //     " " +
-                                          //     data['last name'],
+                                          // data['gender'].toString(),
+                                          data['first name'] +
+                                              " " +
+                                              data['last name'],
                                           style: TextStyle(
                                               fontSize: 24,
                                               fontWeight: FontWeight.bold,
@@ -329,7 +341,9 @@ class _PatientProfielState extends State<PatientProfiel> {
                                       height: 20,
                                     ),
                                     VisitHistoryList(
-                                        patientId: "IPR-f6bjmqLHhHppEAKzyFsL")
+                                      patientId: data['uid'],
+                                      patientName: data['first name'],
+                                    )
                                   ],
                                 ),
                               ),
@@ -377,29 +391,68 @@ class VisitHistoryDialog extends StatelessWidget {
   final String patientId;
   final String visitId;
   final String visitDate;
+  final String patientName;
 
   VisitHistoryDialog(
       {required this.patientId,
       required this.visitId,
-      required this.visitDate});
+      required this.visitDate,
+      required this.patientName});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Visit History Details'),
+      title: Text(
+        'Visit History Details',
+        style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            wordSpacing: 5.0),
+      ),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
             Container(
               width: MediaQuery.of(context).size.width / 2,
-              height: MediaQuery.of(context).size.height / 4,
-              child: Column(
-                children: [
-                  Text(
-                    visitDate,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
+              height: MediaQuery.of(context).size.height / 2,
+              child: FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection('patients')
+                    .doc(patientId)
+                    .collection('visit history')
+                    .doc(visitId)
+                    .get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData ||
+                      snapshot.data?.data() == null) {
+                    return Center(child: Text('No Data Found'));
+                  } else {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Divider(
+                          color: secondaryaccent,
+                          thickness: 2,
+                        ),
+                        Information("Patient name: ", patientName),
+                        Information(
+                            "Reason of visit: ", data['reason of visit']),
+                        Information("Visit date: ", visitDate),
+                        Information("Diagnosis: ", data['diagnosis']),
+                        Information("Recommendation: ", data['instruction'])
+                      ],
+                    );
+                  }
+                },
               ),
             )
           ],
@@ -407,10 +460,38 @@ class VisitHistoryDialog extends StatelessWidget {
       ),
       actions: <Widget>[
         TextButton(
-          child: const Text('Approve'),
+          child: const Text(
+            'Close',
+            style: TextStyle(color: secondaryaccent),
+          ),
           onPressed: () {
             Navigator.of(context).pop();
           },
+        ),
+      ],
+    );
+  }
+
+  Row Information(String header, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          header,
+          style: TextStyle(
+              color: Colors.grey,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              wordSpacing: 5.0),
+        ),
+        Container(
+          width: 500,
+          child: Text(
+            value,
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold, wordSpacing: 5.0),
+          ),
         ),
       ],
     );
@@ -419,8 +500,9 @@ class VisitHistoryDialog extends StatelessWidget {
 
 class VisitHistoryList extends StatelessWidget {
   final String patientId;
+  final String patientName;
 
-  VisitHistoryList({required this.patientId});
+  VisitHistoryList({required this.patientId, required this.patientName});
 
   Widget VisitHistoryCard(BuildContext context, DocumentSnapshot visitHistory) {
     Object visitData = visitHistory.data()!;
@@ -448,10 +530,10 @@ class VisitHistoryList extends StatelessWidget {
                   return Builder(
                     builder: (context) {
                       return VisitHistoryDialog(
-                        patientId: patientId,
-                        visitId: visitData['visit id'],
-                        visitDate: formattedDate,
-                      );
+                          patientId: patientId,
+                          visitId: visitData['visit id'],
+                          visitDate: formattedDate,
+                          patientName: patientName);
                     },
                   );
                 },
