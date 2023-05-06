@@ -339,20 +339,30 @@ class _IndividualPatientRecordFormState
                           ],
                         ),
                       ),
-                      Header(text: "Pregnancy History"),
-                      Gravida(),
-                      Parity(),
-                      Premature(),
-                      Abortion(),
-                      LivingChildren(),
-                      FamilyPlanning(),
-                      Header(text: "Patient Physical Examination Findings"),
-                      BloodPressure(),
-                      HeartRate(),
-                      RespiratoryRate(),
-                      Height(),
-                      Weight(),
-                      WaistCircumference(),
+                      Visibility(
+                        visible: !isMale,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Header(text: "Pregnancy History"),
+                            Gravida(),
+                            Parity(),
+                            Premature(),
+                            Abortion(),
+                            LivingChildren(),
+                            FamilyPlanning(),
+                            Header(
+                                text: "Patient Physical Examination Findings"),
+                            BloodPressure(),
+                            HeartRate(),
+                            RespiratoryRate(),
+                            Height(),
+                            Weight(),
+                            WaistCircumference(),
+                          ],
+                        ),
+                      ),
+
                       TextButton(
                           onPressed: () {
                             addIndividualPatient();
