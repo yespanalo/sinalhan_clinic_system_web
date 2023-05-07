@@ -26,6 +26,26 @@ class _IndividualPatientRecordFormState
   TextEditingController provinceController = new TextEditingController();
   TextEditingController religionController = new TextEditingController();
   TextEditingController occupationController = new TextEditingController();
+  TextEditingController birthcontrolController = new TextEditingController();
+  TextEditingController elderImmuController = new TextEditingController();
+  TextEditingController pregImmuController = new TextEditingController();
+  TextEditingController womenImmuController = new TextEditingController();
+  TextEditingController childImmuController = new TextEditingController();
+  TextEditingController medhistoryListController = new TextEditingController();
+  TextEditingController operationsListController = new TextEditingController();
+  TextEditingController diseaseListController = new TextEditingController();
+  TextEditingController bottlesController = new TextEditingController();
+  TextEditingController packsController = new TextEditingController();
+  TextEditingController lastMensController = new TextEditingController();
+  TextEditingController periodDurationController = new TextEditingController();
+  TextEditingController padsController = new TextEditingController();
+  TextEditingController intervalCycleController = new TextEditingController();
+  TextEditingController onsetController = new TextEditingController();
+  TextEditingController gravidaController = new TextEditingController();
+  TextEditingController parityController = new TextEditingController();
+  TextEditingController prematureController = new TextEditingController();
+  TextEditingController abortionController = new TextEditingController();
+  TextEditingController livingChildrenController = new TextEditingController();
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = genderList.first;
   var _text = '';
@@ -88,6 +108,30 @@ class _IndividualPatientRecordFormState
       'occupation': occupationController.text,
       "additional info": {
         "alcohol": alcoholValue,
+        "birth control": birthcontrolController.text,
+        "elderly immunizations": elderImmuController.text,
+        "pregnant immunizations": pregImmuController.text,
+        "women immunizations": womenImmuController.text,
+        "children immunizations": childImmuController.text,
+        "family diseases": diseaseListController.text,
+        "past operation and dates": operationsListController.text,
+        "past medical history": medhistoryListController.text,
+        "bottle per year": bottlesController.text,
+        "smoking": smokingValue,
+        "packs per year": packsController.text,
+        "illicit drugs": drugsValue,
+        "menopause": menopauseValue,
+        "family planning": familyplanningValue,
+        "last mens": lastMensController.text,
+        "period duration": periodDurationController.text,
+        "pads per day": padsController.text,
+        "interval cycle": intervalCycleController.text,
+        "onset of sexual intercourse": onsetController.text,
+        "gravida": gravidaController.text,
+        "parity": parityController.text,
+        "number of premature": prematureController.text,
+        "number of abortion": abortionController.text,
+        "number of living children": livingChildrenController.text,
       }
     });
   }
@@ -232,12 +276,15 @@ class _IndividualPatientRecordFormState
                         text: "Patient Medical History",
                       ),
                       patiendMedicalHistory(
+                        controller: medhistoryListController,
                         heading: "Please list past medical history",
                       ),
                       patiendMedicalHistory(
+                        controller: operationsListController,
                         heading: "Please list any Operations and Dates of Each",
                       ),
                       patiendMedicalHistory(
+                        controller: diseaseListController,
                         heading:
                             "Please list any diseases that run in the family",
                       ),
@@ -254,6 +301,7 @@ class _IndividualPatientRecordFormState
                           margin:
                               EdgeInsets.only(left: 30, right: 20, bottom: 10),
                           child: TextField(
+                            controller: packsController,
                             decoration: InputDecoration(
                               hintText: "Please enter how many packs per year",
                               contentPadding:
@@ -282,6 +330,7 @@ class _IndividualPatientRecordFormState
                           margin:
                               EdgeInsets.only(left: 30, right: 20, bottom: 10),
                           child: TextField(
+                            controller: bottlesController,
                             decoration: InputDecoration(
                               hintText: "Please enter how bottles per year",
                               contentPadding:
@@ -303,12 +352,14 @@ class _IndividualPatientRecordFormState
                       DrugsRadio(),
                       Header(text: "Immunizations"),
                       patiendMedicalHistory(
+                        controller: childImmuController,
                         heading:
                             "Please list if there are children immunizations received",
                       ),
                       Visibility(
                         visible: !isMale,
                         child: patiendMedicalHistory(
+                          controller: womenImmuController,
                           heading:
                               "Please list if there are young women immunizations received",
                         ),
@@ -316,11 +367,13 @@ class _IndividualPatientRecordFormState
                       Visibility(
                         visible: !isMale,
                         child: patiendMedicalHistory(
+                          controller: pregImmuController,
                           heading:
                               "Please list if there are immunizations for pregnant received",
                         ),
                       ),
                       patiendMedicalHistory(
+                        controller: elderImmuController,
                         heading:
                             "Please list if there are immunizations for elderly received",
                       ),
@@ -331,12 +384,13 @@ class _IndividualPatientRecordFormState
                           children: [
                             Header(text: "Menstrual History"),
                             Menarche(),
-                            LastMens(),
+                            LastMens(lastMensController: lastMensController),
                             periodDuration(),
                             padsPerDay(),
                             IntervalCycle(),
                             OnsetofIntercourse(),
                             patiendMedicalHistory(
+                                controller: birthcontrolController,
                                 heading:
                                     "Please list birth control method if there is any"),
                             Menopause(),
@@ -355,14 +409,14 @@ class _IndividualPatientRecordFormState
                             Abortion(),
                             LivingChildren(),
                             FamilyPlanning(),
-                            Header(
-                                text: "Patient Physical Examination Findings"),
-                            BloodPressure(),
-                            HeartRate(),
-                            RespiratoryRate(),
-                            Height(),
-                            Weight(),
-                            WaistCircumference(),
+                            // Header(
+                            //     text: "Patient Physical Examination Findings"),
+                            // BloodPressure(),
+                            // HeartRate(),
+                            // RespiratoryRate(),
+                            // Height(),
+                            // Weight(),
+                            // WaistCircumference(),
                           ],
                         ),
                       ),
@@ -692,6 +746,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: livingChildrenController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -738,6 +793,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: abortionController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -784,6 +840,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: prematureController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -830,6 +887,8 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: parityController,
+
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -876,6 +935,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: gravidaController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -974,6 +1034,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: onsetController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -1020,6 +1081,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: intervalCycleController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -1066,6 +1128,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: padsController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -1112,6 +1175,7 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              controller: periodDurationController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -1511,7 +1575,10 @@ class _IndividualPatientRecordFormState
 class LastMens extends StatelessWidget {
   const LastMens({
     Key? key,
+    required this.lastMensController,
   }) : super(key: key);
+
+  final TextEditingController lastMensController;
 
   @override
   Widget build(BuildContext context) {
@@ -1530,6 +1597,7 @@ class LastMens extends StatelessWidget {
           width: 330,
           child: TextField(
             readOnly: true,
+            controller: lastMensController,
             decoration: InputDecoration(
                 hintText: "Please enter last menstruation period",
                 enabledBorder: OutlineInputBorder(
@@ -1548,8 +1616,7 @@ class LastMens extends StatelessWidget {
                   initialDate: DateTime(2021),
                   firstDate: DateTime(1900),
                   lastDate: DateTime(2100)))!;
-              // fathersBirthdateController.text =
-              //     DateFormat('yyy-MM-dd').format(date);
+              lastMensController.text = DateFormat('yyy-MM-dd').format(date);
             },
           ),
         ),
@@ -1559,11 +1626,12 @@ class LastMens extends StatelessWidget {
 }
 
 class patiendMedicalHistory extends StatelessWidget {
-  const patiendMedicalHistory({Key? key, required this.heading})
+  const patiendMedicalHistory(
+      {Key? key, required this.heading, required this.controller})
       : super(key: key);
 
   final String heading;
-
+  final TextEditingController controller;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1582,6 +1650,7 @@ class patiendMedicalHistory extends StatelessWidget {
             height: 100,
             width: double.infinity,
             child: TextField(
+              controller: controller,
               textAlignVertical: TextAlignVertical.top,
               expands: true,
               keyboardType: TextInputType.multiline,
