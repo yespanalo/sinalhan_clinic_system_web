@@ -14,7 +14,7 @@ const SizedBox longsizedbox = SizedBox(
 
 const Color primarycolor = Color(0xff072a5c);
 const Color secondarycolor = Color(0xff990f32);
-const Color primaryaccent = Color(0xff10599a);
+const Color primaryaccent = Color.fromARGB(210, 16, 98, 169);
 const Color secondaryaccent = Color(0xffd33769);
 
 String ip = "";

@@ -343,6 +343,204 @@ class _PatientProfielState extends State<PatientProfiel> {
                                     VisitHistoryList(
                                       patientId: data['uid'],
                                       patientName: data['first name'],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(left: 50, right: 50),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Upcoming Visit",
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.5,
+                                          wordSpacing: 5.0),
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    // UpcomingVisitCard(context)
+                                    FutureBuilder(
+                                      future: FirebaseFirestore.instance
+                                          .collection('appointments')
+                                          .doc(widget.uid)
+                                          .get(),
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot<DocumentSnapshot>
+                                              snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else if (snapshot.hasError) {
+                                          return Center(
+                                              child: Text(
+                                                  'Error: ${snapshot.error}'));
+                                        } else if (!snapshot.hasData ||
+                                            snapshot.data?.data() == null) {
+                                          return Center(
+                                              child: Text('No Data Found'));
+                                        } else {
+                                          final data = snapshot.data!.data()
+                                              as Map<String, dynamic>;
+                                          var visitTimestamp = (data as Map<
+                                                  String,
+                                                  dynamic>)?['date of visit']
+                                              as Timestamp?;
+                                          var visitDateTime =
+                                              visitTimestamp?.toDate();
+                                          var formattedDate =
+                                              DateFormat('MMMM d, y')
+                                                  .format(visitDateTime!);
+
+                                          var visitDay =
+                                              visitDateTime?.day.toString() ??
+                                                  '';
+                                          var visitMonth = visitDateTime != null
+                                              ? DateFormat('MMMM')
+                                                  .format(visitDateTime)
+                                              : '';
+                                          var visitYear =
+                                              visitDateTime?.year.toString() ??
+                                                  '';
+                                          var visitDayOfWeek =
+                                              visitDateTime != null
+                                                  ? DateFormat('EEEE')
+                                                      .format(visitDateTime)
+                                                  : '';
+                                          var reason =
+                                              (data as Map<String, dynamic>)?[
+                                                      'reason of visit'] ??
+                                                  '';
+                                          return MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: GestureDetector(
+                                              onTap: () {},
+                                              child: Container(
+                                                padding: const EdgeInsets.only(
+                                                    left: 50, right: 50),
+                                                margin:
+                                                    EdgeInsets.only(bottom: 20),
+                                                decoration: BoxDecoration(
+                                                  color: primaryaccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20.0),
+                                                ),
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width /
+                                                    1.5,
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height /
+                                                    6,
+                                                child: Row(
+                                                  children: [
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              reason
+                                                                  .toString()
+                                                                  .toUpperCase(),
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 18,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  letterSpacing:
+                                                                      1.5,
+                                                                  wordSpacing:
+                                                                      5.0),
+                                                            ),
+                                                            SizedBox(
+                                                                height: 10),
+                                                            Text(
+                                                              "Reason of visit",
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 12),
+                                                            )
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Spacer(),
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      children: [
+                                                        Text(
+                                                          visitDay,
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 30),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Text(
+                                                          visitMonth
+                                                                  .toUpperCase() +
+                                                              " " +
+                                                              visitYear
+                                                                  .toUpperCase(),
+                                                          style: TextStyle(
+                                                              letterSpacing:
+                                                                  1.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Text(
+                                                          visitDayOfWeek,
+                                                          style: TextStyle(
+                                                              letterSpacing:
+                                                                  1.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
                                     )
                                   ],
                                 ),
@@ -555,7 +753,8 @@ class VisitHistoryList extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Informations(reason, "Reason of Visit"),
+                  Informations(
+                      reason.toString().toUpperCase(), "Reason of Visit"),
                 ],
               ),
               Spacer(),
