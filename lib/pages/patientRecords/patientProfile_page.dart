@@ -366,8 +366,10 @@ class _PatientProfielState extends State<PatientProfiel> {
                                     // UpcomingVisitCard(context)
                                     FutureBuilder(
                                       future: FirebaseFirestore.instance
-                                          .collection('appointments')
+                                          .collection('patients')
                                           .doc(widget.uid)
+                                          .collection('appointments')
+                                          .doc('sGzigbA0oFWn3sH2Q33b')
                                           .get(),
                                       builder: (BuildContext context,
                                           AsyncSnapshot<DocumentSnapshot>
