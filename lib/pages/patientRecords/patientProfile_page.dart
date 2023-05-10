@@ -422,7 +422,26 @@ class _PatientProfielState extends State<PatientProfiel> {
                                           return MouseRegion(
                                             cursor: SystemMouseCursors.click,
                                             child: GestureDetector(
-                                              onTap: () {},
+                                              onTap: () {
+                                                Future.delayed(Duration(
+                                                        milliseconds: 100))
+                                                    .then((value) {
+                                                  showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return Builder(
+                                                            builder: (context) {
+                                                          return CloseScheduleDialog(
+                                                            patientId:
+                                                                widget.uid,
+                                                            visitDate:
+                                                                formattedDate,
+                                                          );
+                                                        });
+                                                      });
+                                                });
+                                              },
                                               child: Container(
                                                 padding: const EdgeInsets.only(
                                                     left: 50, right: 50),
@@ -582,6 +601,94 @@ class _PatientProfielState extends State<PatientProfiel> {
           "$key",
           style: TextStyle(color: Colors.grey, fontSize: 12),
         )
+      ],
+    );
+  }
+}
+
+class CloseScheduleDialog extends StatelessWidget {
+  final String patientId;
+  final String visitDate;
+  CloseScheduleDialog({required this.patientId, required this.visitDate});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Visit Details',
+        style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            wordSpacing: 5.0),
+      ),
+      content: SingleChildScrollView(
+          child: ListBody(
+        children: <Widget>[
+          Container(
+            width: MediaQuery.of(context).size.width / 2,
+            height: MediaQuery.of(context).size.height / 2,
+            child: FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection('patients')
+                    .doc(patientId)
+                    .collection('appointments')
+                    .doc('sGzigbA0oFWn3sH2Q33b')
+                    .get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData ||
+                      snapshot.data?.data() == null) {
+                    return Center(child: Text('No Data Found'));
+                  } else {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Divider(
+                          color: secondaryaccent,
+                          thickness: 2,
+                        ),
+                        Information(
+                            'Reason of Visit: ', data['reason of visit']),
+                        Information("Scheduled Date: ", visitDate)
+                      ],
+                    );
+                  }
+                }),
+          ),
+        ],
+      )),
+    );
+  }
+
+  Row Information(String header, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          header,
+          style: TextStyle(
+              color: Colors.grey,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              wordSpacing: 5.0),
+        ),
+        Container(
+          width: 500,
+          child: Text(
+            value,
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.bold, wordSpacing: 5.0),
+          ),
+        ),
       ],
     );
   }
