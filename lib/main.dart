@@ -29,11 +29,11 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
 
-      // home: LoginPage(),
+      home: LoginPage(),
 
-      home: PatientProfiel(
-        uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
-      ),
+      // home: PatientProfiel(
+      //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
+      // ),
     );
   }
 }
