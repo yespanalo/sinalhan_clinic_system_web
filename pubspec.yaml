@@ -41,6 +41,7 @@ dependencies:
   sweetsheet: ^0.4.0
   responsive_framework: ^0.1.9
   firebase_storage: ^11.0.16
+  fluttertoast: ^8.2.1
 
 dev_dependencies:
   flutter_test:
