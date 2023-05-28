@@ -34,6 +34,8 @@ class MyApp extends StatelessWidget {
       // home: PatientProfiel(
       //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
       // ),
+
+      // home: IndividualPatientRecordForm(),
     );
   }
 }

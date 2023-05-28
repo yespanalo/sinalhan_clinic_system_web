@@ -1,9 +1,20 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sinalhan_clinic_system_web/constants%20copy.dart';
 import 'package:sinalhan_clinic_system_web/function/firebaseFunctions.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker_for_web/image_picker_for_web.dart';
+
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 class IndividualPatientRecordForm extends StatefulWidget {
   const IndividualPatientRecordForm({Key? key}) : super(key: key);
@@ -15,6 +26,10 @@ class IndividualPatientRecordForm extends StatefulWidget {
 
 class _IndividualPatientRecordFormState
     extends State<IndividualPatientRecordForm> {
+  TextEditingController passwordController = new TextEditingController();
+
+  TextEditingController motherName = new TextEditingController();
+  TextEditingController fatherName = new TextEditingController();
   TextEditingController firstName = new TextEditingController();
   TextEditingController middleName = new TextEditingController();
   TextEditingController lastName = new TextEditingController();
@@ -82,19 +97,190 @@ class _IndividualPatientRecordFormState
 
   bool isMale = true;
 
+  List<String> pastMedicalHistoryList = [];
+  void addItemToPastMedicalHistory(String newItem) {
+    setState(() {
+      pastMedicalHistoryList.add(newItem);
+    });
+  }
+
+  List<String> pastOperationList = [];
+  void addItemToPastOperationList(String newItem) {
+    setState(() {
+      pastOperationList.add(newItem);
+    });
+  }
+
+  List<String> familyDiseasesList = [];
+  void addItemToFamilyDiseasesListList(String newItem) {
+    setState(() {
+      familyDiseasesList.add(newItem);
+    });
+  }
+
+  List<String> childrenImmunizationList = [];
+  void addItemTochildrenImmunizationList(String newItem) {
+    setState(() {
+      childrenImmunizationList.add(newItem);
+    });
+  }
+
+  List<String> youngWomenImmunizationList = [];
+  void addItemToyoungWomenImmunizationList(String newItem) {
+    setState(() {
+      youngWomenImmunizationList.add(newItem);
+    });
+  }
+
+  List<String> pregnantImmunizationList = [];
+  void addItemTopregnantImmunizationList(String newItem) {
+    setState(() {
+      pregnantImmunizationList.add(newItem);
+    });
+  }
+
+  List<String> elderlyImmunizationList = [];
+  void addItemToelderlyImmunizationList(String newItem) {
+    setState(() {
+      elderlyImmunizationList.add(newItem);
+    });
+  }
+
+  List<String> birthControlList = [];
+  void addItemToBirthControlList(String newItem) {
+    setState(() {
+      birthControlList.add(newItem);
+    });
+  }
+
+  void _showAddItemDialog(String itemCallBack) {
+    String newItem = '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Please list any diseases that run in the family'),
+          content: TextField(
+            onChanged: (value) {
+              newItem = value;
+            },
+          ),
+          actions: [
+            FlatButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (itemCallBack == "family") {
+                  addItemToFamilyDiseasesListList(newItem);
+                } else if (itemCallBack == "pastOperation") {
+                  addItemToPastOperationList(newItem);
+                } else if (itemCallBack == "pastMedicalHistory") {
+                  addItemToPastMedicalHistory(newItem);
+                } else if (itemCallBack == "childrenImmunizations") {
+                  addItemTochildrenImmunizationList(newItem);
+                } else if (itemCallBack == "youngWomenImmunization") {
+                  addItemToyoungWomenImmunizationList(newItem);
+                } else if (itemCallBack == "pregnantImmunization") {
+                  addItemTopregnantImmunizationList(newItem);
+                } else if (itemCallBack == "birthControl") {
+                  addItemToBirthControlList(newItem);
+                } else {
+                  addItemToelderlyImmunizationList(newItem);
+                }
+
+                // addItemCallback(newItem);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> addPictureToStorage(String uid, String imagePath) async {
+    FirebaseStorage storage = FirebaseStorage.instanceFor(
+      bucket: 'gs://sinalhan-clinic-system.appspot.com',
+    );
+    Reference ref = storage.ref().child('$uid.png');
+
+    // Read the image file as Uint8List
+    File file = File(imagePath);
+    Uint8List imageBytes = await file.readAsBytes();
+
+    // Upload the image data
+    TaskSnapshot uploadTask = await ref.putData(imageBytes);
+
+    // Check if the upload is successful
+    if (uploadTask.state == TaskState.success) {
+      print('Image uploaded successfully');
+    } else {
+      print('Image upload failed');
+    }
+  }
+
+  File? _selectedImage;
+
+  void _pickImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      if (result.files.single.bytes != null) {
+        setState(() {
+          _selectedImage = File.fromRawPath(result.files.single.bytes!);
+        });
+      }
+    }
+  }
+
+  void _uploadImage(String uid) async {
+    if (_selectedImage != null) {
+      try {
+        await addPictureToStorage(uid, _selectedImage!.path);
+        print('Image uploaded successfully');
+      } catch (error) {
+        print('Image upload failed: $error');
+      }
+    } else {
+      print('No image selected');
+    }
+  }
+
+  void uploadpastMedicalList(uid) {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    WriteBatch batch = firestore.batch();
+
+    for (String item in pastMedicalHistoryList) {
+      DocumentReference documentRef = firestore.collection('patients').doc(uid);
+      batch.set(documentRef, {'pastMedicalList': item});
+    }
+
+    batch.commit();
+  }
+
   //firebase function
   void addIndividualPatient() async {
-    String initials = 'IPR'; // Set the initials to whatever you want.
-    String customID =
-        '$initials-${FirebaseFirestore.instance.collection('patients').doc().id}';
-    await FirebaseFirestore.instance.collection('patients').doc(customID).set({
+    // Set the initials to whatever you want.
+    UserCredential userCredential = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+            email: emailController.text, password: passwordController.text);
+    await FirebaseFirestore.instance
+        .collection('patients')
+        .doc(userCredential.user!.uid)
+        .set({
+      'type': "Patient",
       'first name': firstName.text,
       'last name': lastName.text,
       'middle name': middleName.text,
       'category': "Individual Patient Record",
       'email': emailController.text,
       'contact number': mobileNumber.text,
-      'uid': customID,
+      'uid': userCredential.user!.uid,
       'address': streetController.text +
           ", " +
           cityController.text +
@@ -106,6 +292,8 @@ class _IndividualPatientRecordFormState
       'educational attainment': EducationDropdownValue,
       'religion': religionController.text,
       'occupation': occupationController.text,
+      'mothers name': motherName.text,
+      'fathers name': fatherName.text,
       "additional info": {
         "alcohol": alcoholValue,
         "birth control": birthcontrolController.text,
@@ -132,8 +320,18 @@ class _IndividualPatientRecordFormState
         "number of premature": prematureController.text,
         "number of abortion": abortionController.text,
         "number of living children": livingChildrenController.text,
+        "pastMedicalList": pastMedicalHistoryList,
       }
     });
+    Fluttertoast.showToast(
+        msg: "Success!",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+    // uploadpastMedicalList(userCredential.user!.uid);
+    // _uploadImage(userCredential.user!.uid);
   }
 
   @override
@@ -146,11 +344,6 @@ class _IndividualPatientRecordFormState
           children: [
             Column(
               children: [
-                BackButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
@@ -188,6 +381,29 @@ class _IndividualPatientRecordFormState
                           Divider(),
                         ],
                       ),
+                      Header(text: "Sign up with email"),
+                      email(
+                        emailController: emailController,
+                      ),
+                      password("Enter password"),
+                      // Center(
+                      //   child: Column(
+                      //     mainAxisAlignment: MainAxisAlignment.center,
+                      //     children: [
+                      //       Text(
+                      //         _selectedImage != null
+                      //             ? _selectedImage!.path.split('/').last
+                      //             : 'No image selected',
+                      //         style: TextStyle(fontSize: 16),
+                      //       ),
+                      //       SizedBox(height: 20),
+                      //       ElevatedButton(
+                      //         onPressed: _pickImage,
+                      //         child: Text('Select Image'),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
                       Header(
                         text: "General Patient Information",
                       ),
@@ -254,9 +470,7 @@ class _IndividualPatientRecordFormState
                       phoneNumber(
                         contactNumber: mobileNumber,
                       ),
-                      email(
-                        emailController: emailController,
-                      ),
+
                       // NameWidget(
                       //   nameOf: "Father's Name",
                       // ),
@@ -272,22 +486,28 @@ class _IndividualPatientRecordFormState
                         occupationController: occupationController,
                       ),
                       educationalAttainment(),
+                      mothersName(),
+                      fathersName(),
                       Header(
                         text: "Patient Medical History",
                       ),
-                      patiendMedicalHistory(
-                        controller: medhistoryListController,
-                        heading: "Please list past medical history",
+
+                      getList(
+                        "List past medical history",
+                        pastMedicalHistoryList,
+                        () => _showAddItemDialog("pastMedicalHistory"),
                       ),
-                      patiendMedicalHistory(
-                        controller: operationsListController,
-                        heading: "Please list any Operations and Dates of Each",
+                      getList(
+                        "Please list past operations",
+                        pastOperationList,
+                        () => _showAddItemDialog("pastOperation"),
                       ),
-                      patiendMedicalHistory(
-                        controller: diseaseListController,
-                        heading:
-                            "Please list any diseases that run in the family",
+                      getList(
+                        "Please list past operations",
+                        familyDiseasesList,
+                        () => _showAddItemDialog("family"),
                       ),
+
                       Header(
                         text: "Healthy & Unhealthy Habits",
                       ),
@@ -351,32 +571,34 @@ class _IndividualPatientRecordFormState
                       ),
                       DrugsRadio(),
                       Header(text: "Immunizations"),
-                      patiendMedicalHistory(
-                        controller: childImmuController,
-                        heading:
-                            "Please list if there are children immunizations received",
+                      getList(
+                        "Please list if there are children immunizations received",
+                        childrenImmunizationList,
+                        () => _showAddItemDialog("childrenImmunizations"),
                       ),
                       Visibility(
                         visible: !isMale,
-                        child: patiendMedicalHistory(
-                          controller: womenImmuController,
-                          heading:
-                              "Please list if there are young women immunizations received",
+                        child: getList(
+                          "Please list if there are young women immunizations received",
+                          youngWomenImmunizationList,
+                          () => _showAddItemDialog("youngWomenImmunization"),
                         ),
                       ),
+
                       Visibility(
                         visible: !isMale,
-                        child: patiendMedicalHistory(
-                          controller: pregImmuController,
-                          heading:
-                              "Please list if there are immunizations for pregnant received",
+                        child: getList(
+                          "Please list if there are immunizations for pregnant received",
+                          pregnantImmunizationList,
+                          () => _showAddItemDialog("pregnantImmunization"),
                         ),
                       ),
-                      patiendMedicalHistory(
-                        controller: elderImmuController,
-                        heading:
-                            "Please list if there are immunizations for elderly received",
+                      getList(
+                        "Please list if there are children immunizations received",
+                        elderlyImmunizationList,
+                        () => _showAddItemDialog("elderlyImmunizations"),
                       ),
+
                       Visibility(
                         visible: !isMale,
                         child: Column(
@@ -389,10 +611,11 @@ class _IndividualPatientRecordFormState
                             padsPerDay(),
                             IntervalCycle(),
                             OnsetofIntercourse(),
-                            patiendMedicalHistory(
-                                controller: birthcontrolController,
-                                heading:
-                                    "Please list birth control method if there is any"),
+                            getList(
+                              "Please list birth control method if there is any",
+                              birthControlList,
+                              () => _showAddItemDialog("birthControl"),
+                            ),
                             Menopause(),
                           ],
                         ),
@@ -420,21 +643,255 @@ class _IndividualPatientRecordFormState
                           ],
                         ),
                       ),
-
-                      TextButton(
-                          onPressed: () {
-                            addIndividualPatient();
-                            Navigator.pop(context);
-                          },
-                          child: Text("Add"))
                     ],
                   ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                          top: 20, bottom: 10, left: 20, right: 20),
+                      width: 400,
+                      height: 50,
+                      child: TextButton(
+                        onPressed: () {
+                          addIndividualPatient();
+                          Navigator.pop(context);
+                        },
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(secondaryaccent),
+                        ),
+                        child: Text(
+                          "Add",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(
+                          top: 20, bottom: 10, left: 20, right: 20),
+                      width: 400,
+                      height: 50,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.grey),
+                        ),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
         ),
       )),
+    );
+  }
+
+  Column getList(header, list, addFunction) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+          child: Text(
+            "$header",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width / 3.9,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              return Container(
+                margin:
+                    EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  border: Border.all(
+                    color: Colors.blue,
+                    style: BorderStyle.solid,
+                    width: 0.50,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: Text(list[index]),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: secondaryaccent,
+                      ),
+                      onPressed: () {
+                        // Handle delete button pressed for the item at index
+                        // Remove the item from the list or perform any other actions
+                        // Here's an example of removing the item:
+                        setState(() {
+                          list.removeAt(index);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+          width: MediaQuery.of(context).size.width / 4.5,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            border: Border.all(
+              color: Colors.blue,
+              style: BorderStyle.solid,
+              width: 0.50,
+            ),
+          ),
+          child: TextButton(
+            onPressed: addFunction,
+            child: Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Container password(
+    text,
+  ) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            text,
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              obscureText: true,
+              controller: passwordController,
+              decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container mothersName() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Mother's Name",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: motherName,
+              decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container fathersName() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Father's Name",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: fatherName,
+              decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1773,12 +2230,12 @@ class email extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      margin: EdgeInsets.only(bottom: 10, left: 30, right: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Patient E-Mail",
+            "Enter email ",
             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
           ),
           SizedBox(

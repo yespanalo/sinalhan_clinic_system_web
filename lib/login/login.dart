@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -5,6 +6,8 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/function/authFunctions.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
+
+import '../patient/PatientHomePage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -188,21 +191,50 @@ class _LoginPageState extends State<LoginPage> {
                                     password.text,
                                     context,
                                   );
+
                                   if (error == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text('You are Logged In')),
                                     );
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => Home(),
-                                      ),
-                                    );
-                                  } else {
-                                    setState(() {
-                                      isWrongCredentials = true;
-                                    });
+
+                                    String uid =
+                                        FirebaseAuth.instance.currentUser!.uid;
+
+                                    DocumentSnapshot patientSnapshot =
+                                        await FirebaseFirestore.instance
+                                            .collection('patients')
+                                            .doc(uid)
+                                            .get();
+
+                                    DocumentSnapshot userSnapshot =
+                                        await FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(uid)
+                                            .get();
+
+                                    if (patientSnapshot.exists) {
+                                      // UID exists in the "patients" collection
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PatientHomePage(
+                                            uid: uid,
+                                          ),
+                                        ),
+                                      );
+                                    } else if (userSnapshot.exists) {
+                                      // UID exists in the "users" collection
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Home(),
+                                        ),
+                                      );
+                                    } else {
+                                      // UID does not exist in either collection
+                                      // Handle the case when the user is not found
+                                    }
                                   }
                                 },
                                 child: const Text("Log in",

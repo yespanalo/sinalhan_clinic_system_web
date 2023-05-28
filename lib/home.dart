@@ -146,9 +146,8 @@ class _HomeState extends State<Home> {
     String period = _timeOfDay.period == DayPeriod.am ? "AM" : "PM";
     final List<dynamic> pages = [
       PatientRecords(timeOfDay: _timeOfDay, period: period),
-      Inventory_Page(timeOfDay: _timeOfDay, period: period),
       PatientRecords(timeOfDay: _timeOfDay, period: period),
-
+      Inventory_Page(timeOfDay: _timeOfDay, period: period),
       PatientRecords(timeOfDay: _timeOfDay, period: period),
       PatientRecords(timeOfDay: _timeOfDay, period: period),
       UsersPage(timeOfDay: _timeOfDay, period: period),

@@ -28,6 +28,12 @@ class _Inventory_PageState extends State<Inventory_Page>
 
   //Variables
   String dropdownValue = 'Medicine List';
+  String? medicineName;
+  int? threshold;
+  DateTime? expiryDate;
+  String? category;
+  DateTime? manufacturingDate;
+  int? quantity;
 
 //Functions
   String formatTimeOfDay(TimeOfDay tod) {
@@ -245,7 +251,133 @@ class _Inventory_PageState extends State<Inventory_Page>
                           ),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        AlertDialog(
+                          title: Text('Add Medicine'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  decoration: InputDecoration(
+                                      labelText: 'Medicine Name'),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      medicineName = value;
+                                    });
+                                  },
+                                ),
+                                TextField(
+                                  decoration:
+                                      InputDecoration(labelText: 'Threshold'),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      threshold = int.tryParse(value);
+                                    });
+                                  },
+                                ),
+                                TextField(
+                                  decoration:
+                                      InputDecoration(labelText: 'Expiry Date'),
+                                  onTap: () async {
+                                    DateTime? pickedDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (pickedDate != null) {
+                                      setState(() {
+                                        expiryDate = pickedDate;
+                                      });
+                                    }
+                                  },
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                    text: expiryDate != null
+                                        ? '${expiryDate!.day}-${expiryDate!.month}-${expiryDate!.year}'
+                                        : '',
+                                  ),
+                                ),
+                                TextField(
+                                  decoration:
+                                      InputDecoration(labelText: 'Category'),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      category = value;
+                                    });
+                                  },
+                                ),
+                                TextField(
+                                  decoration: InputDecoration(
+                                      labelText: 'Manufacturing Date'),
+                                  onTap: () async {
+                                    DateTime? pickedDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(1900),
+                                      lastDate: DateTime.now(),
+                                    );
+                                    if (pickedDate != null) {
+                                      setState(() {
+                                        manufacturingDate = pickedDate;
+                                      });
+                                    }
+                                  },
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                    text: manufacturingDate != null
+                                        ? '${manufacturingDate!.day}-${manufacturingDate!.month}-${manufacturingDate!.year}'
+                                        : '',
+                                  ),
+                                ),
+                                TextField(
+                                  decoration:
+                                      InputDecoration(labelText: 'Quantity'),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      quantity = int.tryParse(value);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                if (medicineName != null &&
+                                    threshold != null &&
+                                    expiryDate != null &&
+                                    category != null &&
+                                    manufacturingDate != null &&
+                                    quantity != null) {
+                                  // Perform any necessary logic with the entered data
+                                  print('Medicine Name: $medicineName');
+                                  print('Threshold: $threshold');
+                                  print('Expiry Date: $expiryDate');
+                                  print('Category: $category');
+                                  print(
+                                      'Manufacturing Date: $manufacturingDate');
+                                  print('Quantity: $quantity');
+
+                                  // Close the dialog
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              child: Text('Add'),
+                            ),
+                          ],
+                        );
+                      },
                       child: Text("Add",
                           style: TextStyle(fontSize: 16, color: Colors.white))),
                 ),

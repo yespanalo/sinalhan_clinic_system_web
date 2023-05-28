@@ -1,3 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,25 +10,21 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sweetsheet/sweetsheet.dart';
 import '../../constants.dart';
-import 'dart:io';
-import 'package:image_picker_for_web/image_picker_for_web.dart';
+import '../login/login.dart';
 
-class PatientProfiel extends StatefulWidget {
-  const PatientProfiel({
-    required this.uid,
-    super.key,
-  });
-
+class PatientHomePage extends StatefulWidget {
+  const PatientHomePage({required this.uid, Key? key}) : super(key: key);
   final String uid;
+
   @override
-  State<PatientProfiel> createState() => _PatientProfielState();
+  State<PatientHomePage> createState() => _PatientHomePageState();
 }
 
-class _PatientProfielState extends State<PatientProfiel> {
+class _PatientHomePageState extends State<PatientHomePage> {
   late Future<DocumentSnapshot> _userDataFuture;
   String formatTimeOfDay(TimeOfDay tod) {
     final now = new DateTime.now();
@@ -37,8 +37,7 @@ class _PatientProfielState extends State<PatientProfiel> {
   TextEditingController recommend = new TextEditingController();
   TextEditingController visitDateController = new TextEditingController();
   TextEditingController reasonController = new TextEditingController();
-
-  bool moreInfoVisible = false;
+  final SweetSheet _sweetSheet = SweetSheet();
 
   @override
   void initState() {
@@ -66,56 +65,6 @@ class _PatientProfielState extends State<PatientProfiel> {
         ),
       ),
     );
-  }
-
-  Future<TaskSnapshot?> addPictureToStorage(
-      String uid, String imagePath) async {
-    FirebaseStorage storage = FirebaseStorage.instance;
-    Reference ref = storage.ref().child('$uid.png');
-
-    // Read the image file
-    File file = File(imagePath);
-    TaskSnapshot? uploadTask;
-
-    try {
-      uploadTask = await ref.putFile(file);
-
-      // Check if the upload is successful
-      if (uploadTask.state == TaskState.success) {
-        return uploadTask;
-      } else {
-        throw Exception('Image upload failed');
-      }
-    } catch (e) {
-      print(e);
-      return null;
-    }
-  }
-
-  File? _selectedImage;
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.getImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
-      setState(() {
-        _selectedImage = File(pickedImage.path);
-      });
-    }
-  }
-
-  Future<void> _uploadImage() async {
-    if (_selectedImage != null) {
-      try {
-        await addPictureToStorage(widget.uid, _selectedImage!.path);
-        print('Image uploaded successfully');
-      } catch (error) {
-        print('Image upload failed: $error');
-      }
-    } else {
-      print('No image selected');
-    }
   }
 
   @override
@@ -149,7 +98,6 @@ class _PatientProfielState extends State<PatientProfiel> {
                       color: Colors.white,
                       child: Row(
                         children: [
-                          BackButton(),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -162,7 +110,7 @@ class _PatientProfielState extends State<PatientProfiel> {
                                     color: Color(0xff1B1C1E)),
                               ),
                               Text(
-                                "Patient Records",
+                                "Patient Record",
                                 style: TextStyle(
                                     fontFamily: "Mont",
                                     fontSize: 15,
@@ -171,6 +119,38 @@ class _PatientProfielState extends State<PatientProfiel> {
                             ],
                           ),
                           const Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              _sweetSheet.show(
+                                context: context,
+                                title: Text("Confirmation"),
+                                description:
+                                    Text("Are you sure you want to sign out?"),
+                                color: SweetSheetColor.SUCCESS,
+                                negative: SweetSheetAction(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+
+                                    FirebaseAuth.instance.signOut();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LoginPage(),
+                                      ),
+                                    );
+                                  },
+                                  title: 'CONFIRM',
+                                ),
+                                positive: SweetSheetAction(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  title: 'CANCEL',
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.logout),
+                          ),
                         ],
                       ),
                     ),
@@ -364,110 +344,13 @@ class _PatientProfielState extends State<PatientProfiel> {
                                     SizedBox(
                                       height: 40,
                                     ),
-                                    Visibility(
-                                      visible: moreInfoVisible,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Healthy & Unhealthy Habits"
-                                                .toUpperCase(),
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 1.5,
-                                                wordSpacing: 5.0),
-                                          ),
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Informations(data['smoking'],
-                                                      "Smoking"),
-                                                  SizedBox(
-                                                    height: 40,
-                                                  ),
-                                                  Informations(data['alcohol'],
-                                                      "Drinking Alcohol"),
-                                                  SizedBox(
-                                                    height: 40,
-                                                  ),
-                                                  Informations(
-                                                      data['illicit drugs'],
-                                                      "Illicit Drugs"),
-                                                ],
-                                              ),
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Informations(data['religion'],
-                                                      "Religion"),
-                                                  SizedBox(
-                                                    height: 40,
-                                                  ),
-                                                  Informations(
-                                                      data[
-                                                          'educational attainment'],
-                                                      "Educational Attainment"),
-                                                  SizedBox(
-                                                    height: 40,
-                                                  ),
-                                                  Informations(
-                                                      data['mothers name'],
-                                                      "Mother's Name"),
-                                                ],
-                                              ),
-                                              Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Informations(
-                                                      data['contact number'],
-                                                      "Contact number"),
-                                                  SizedBox(height: 40),
-                                                  Informations(
-                                                      data['occupation'],
-                                                      "Occupation"),
-                                                  SizedBox(height: 40),
-                                                  Informations(
-                                                      data['gender'].toString(),
-                                                      "Gender"),
-                                                  SizedBox(
-                                                    height: 40,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
                                     TextButton(
                                       child: Text(
-                                        moreInfoVisible == false
-                                            ? "View More"
-                                            : "Show Less",
+                                        "View More",
                                         style:
                                             TextStyle(color: secondaryaccent),
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          moreInfoVisible = !moreInfoVisible;
-                                        });
-                                      },
+                                      onPressed: () {},
                                     ),
                                   ],
                                 ),
@@ -548,7 +431,7 @@ class _PatientProfielState extends State<PatientProfiel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          value == null ? "N/A" : "$value",
+          "$value",
           style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -1074,83 +957,58 @@ class UpcomingVisitList extends StatelessWidget {
         visitDateTime != null ? DateFormat('EEEE').format(visitDateTime) : '';
     var reason =
         (upcomingVisitData as Map<String, dynamic>)?['reason of visit'] ?? '';
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          Future.delayed(Duration(milliseconds: 100)).then((value) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Builder(builder: (context) {
-                    return UpcomingVisitDialog(
-                      patientId: patientId,
-                      visitId: upcomingVisitData['visit id'],
-                      visitDate: formattedDate,
-                      patientName: patientName,
-                      Diagnosiscontroller: diagnosis,
-                      Recommendationcontroller: recommend,
-                      visitDateTime: visitTimestamp,
-                    );
-                  });
-                });
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.only(left: 50, right: 50),
-          margin: EdgeInsets.only(bottom: 20),
-          decoration: BoxDecoration(
-            color: primaryaccent,
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          width: MediaQuery.of(context).size.width / 1.5,
-          height: MediaQuery.of(context).size.height / 6,
-          child: Row(
+    return Container(
+      padding: const EdgeInsets.only(left: 50, right: 50),
+      margin: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: primaryaccent,
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      width: MediaQuery.of(context).size.width / 1.5,
+      height: MediaQuery.of(context).size.height / 6,
+      child: Row(
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Informations(
-                      reason.toString().toUpperCase(), "Reason of Visit"),
-                ],
+              Informations(reason.toString().toUpperCase(), "Reason of Visit"),
+            ],
+          ),
+          Spacer(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                visitDay,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                    color: Colors.white),
               ),
-              Spacer(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    visitDay,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                        color: Colors.white),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    visitMonth.toUpperCase() + " " + visitYear.toUpperCase(),
-                    style: TextStyle(
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Text(
-                    visitDayOfWeek,
-                    style: TextStyle(
-                        letterSpacing: 1.5,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
-                  ),
-                ],
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                visitMonth.toUpperCase() + " " + visitYear.toUpperCase(),
+                style: TextStyle(
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                visitDayOfWeek,
+                style: TextStyle(
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
