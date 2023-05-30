@@ -322,7 +322,7 @@ class _MyDataTableSource extends DataTableSource {
               height: 35,
               width: 35,
               child: IconButton(
-                icon: Icon(Icons.edit),
+                icon: Icon(Icons.remove_red_eye),
                 onPressed: () {
                   Navigator.of(_context).push(
                     MaterialPageRoute(
