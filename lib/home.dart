@@ -26,13 +26,13 @@ class _HomeState extends State<Home> {
     // TODO: implement initState
     _loadUserName();
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_timeOfDay.minute != TimeOfDay.now().minute) {
-        setState(() {
-          _timeOfDay = TimeOfDay.now();
-        });
-      }
-    });
+    // _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    //   if (_timeOfDay.minute != TimeOfDay.now().minute) {
+    //     setState(() {
+    //       _timeOfDay = TimeOfDay.now();
+    //     });
+    //   }
+    // });
   }
 
   @override
