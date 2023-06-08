@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,14 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter/src/widgets/ticker_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
-
+import 'package:csv/csv.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
+import 'package:flutter/services.dart';
+import 'dart:html' as html;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdfWidgets;
 import '../../constants.dart';
 
 class Inventory_Page extends StatefulWidget {
@@ -43,7 +52,163 @@ class _Inventory_PageState extends State<Inventory_Page>
   TextEditingController manufacturingDateController = TextEditingController();
 
   List<Map<String, dynamic>> releaseList = [];
+
 //Functions
+  Future<List<Map<String, dynamic>>> fetchInventoryDatas() async {
+    // Fetch inventory data from Firestore
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('medicine').get();
+
+    // Extract the inventory data from the snapshot
+    List<Map<String, dynamic>> inventoryData = snapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data()
+          as Map<String, dynamic>; // Cast the data to Map<String, dynamic>
+      return {
+        'name': data['name'],
+        'category': data['category'],
+        'quantity':
+            data['batches'].fold(0, (sum, batch) => sum + batch['quantity']),
+      };
+    }).toList();
+
+    return inventoryData;
+  }
+
+  pdfWidgets.Document generateInventorySummaryReport(
+      List<Map<String, dynamic>> data) {
+    final pdf = pdfWidgets.Document();
+
+    pdf.addPage(
+      pdfWidgets.MultiPage(
+        header: (context) {
+          return pdfWidgets.Container(
+            alignment: pdfWidgets.Alignment.centerLeft,
+            margin: pdfWidgets.EdgeInsets.only(bottom: 20.0),
+            child: pdfWidgets.Text(
+              'Inventory Summary Report',
+              style: pdfWidgets.TextStyle(
+                fontSize: 20.0,
+                fontWeight: pdfWidgets.FontWeight.bold,
+              ),
+            ),
+          );
+        },
+        build: (context) => [
+          pdfWidgets.Table.fromTextArray(
+            data: [
+              ['Name', 'Category', 'Quantity'],
+              ...data.map(
+                  (item) => [item['name'], item['category'], item['quantity']]),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return pdf;
+  }
+
+  void _generateAndDownloadReport() async {
+    final inventoryData = await fetchInventoryData();
+
+    final pdf = generateInventorySummaryReport(inventoryData);
+
+    final bytes = await pdf.save();
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'inventory_summary_report.pdf';
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
+  void downloadPdfReport(pdfWidgets.Document pdf) async {
+    final bytes = await pdf.save();
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'inventory_summary_report.pdf';
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
+  Future<List<Map<String, dynamic>>> fetchInventoryData() async {
+    QuerySnapshot medicineSnapshot =
+        await FirebaseFirestore.instance.collection('medicine').get();
+
+    List<Map<String, dynamic>> inventoryData = [];
+
+    for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
+      String name = medicineDoc['name'];
+      String category = medicineDoc['category'];
+
+      QuerySnapshot batchSnapshot =
+          await medicineDoc.reference.collection('batches').get();
+      int totalQuantity = 0;
+
+      for (DocumentSnapshot batchDoc in batchSnapshot.docs) {
+        int quantity = batchDoc['quantity'];
+        totalQuantity += quantity;
+      }
+
+      Map<String, dynamic> inventoryItem = {
+        'name': name,
+        'category': category,
+        'quantity': totalQuantity,
+      };
+
+      inventoryData.add(inventoryItem);
+    }
+
+    return inventoryData;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMedicineData() async {
+    // Fetch main documents from "medicine" collection
+    QuerySnapshot mainSnapshot =
+        await FirebaseFirestore.instance.collection('medicine').get();
+
+    List<Map<String, dynamic>> reportData = [];
+
+    // Iterate over each main document
+    for (QueryDocumentSnapshot mainDoc in mainSnapshot.docs) {
+      String medicineName = mainDoc.get('name');
+      String category = mainDoc.get('category');
+
+      // Fetch documents from "batches" subcollection for the current main document
+      QuerySnapshot batchSnapshot = await FirebaseFirestore.instance
+          .collection('medicine')
+          .doc(mainDoc.id)
+          .collection('batches')
+          .get();
+
+      // Iterate over each batch document
+      for (QueryDocumentSnapshot batchDoc in batchSnapshot.docs) {
+        int quantity = batchDoc.get('quantity');
+
+        // Create a map with the required data
+        Map<String, dynamic> reportEntry = {
+          'medicineName': medicineName,
+          'category': category,
+          'quantity': quantity,
+        };
+
+        // Add the map to the report data list
+        reportData.add(reportEntry);
+      }
+    }
+
+    return reportData;
+  }
+
   void showReleaseListDialog(
       BuildContext context, List<Map<String, dynamic>> releaseList) {
     String? medId;
@@ -410,6 +575,8 @@ class _Inventory_PageState extends State<Inventory_Page>
       return MedicineSupply();
     } else if (dropdownValue == 'Supply Overview') {
       return SupplyOverview();
+    } else if (dropdownValue == 'Reports') {
+      return Reports();
     }
   }
 
@@ -595,6 +762,7 @@ class _Inventory_PageState extends State<Inventory_Page>
                           items: <String>[
                             'Medicine List',
                             'Supply Overview',
+                            'Reports',
                           ].map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
@@ -913,6 +1081,56 @@ class _Inventory_PageState extends State<Inventory_Page>
             );
           },
         ))
+      ],
+    );
+  }
+
+  Column Reports() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 300,
+              child: TextField(
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.deny(
+                      RegExp(r'[!@#<>?":_`~;[\]\\|=+)(*&^%$#@!,./\0-9]')),
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(FontAwesomeIcons.magnifyingGlass),
+                  hintText: 'Search',
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: const Color(0xffF7F7F7),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+        Center(
+          child: ElevatedButton(
+            onPressed: () async {
+              List<Map<String, dynamic>> inventoryData =
+                  await fetchInventoryData();
+              pdfWidgets.Document pdf =
+                  generateInventorySummaryReport(inventoryData);
+              downloadPdfReport(pdf);
+            },
+            child: Text('Generate Report'),
+          ),
+        )
       ],
     );
   }

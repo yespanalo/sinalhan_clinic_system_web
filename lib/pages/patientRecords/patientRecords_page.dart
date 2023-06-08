@@ -257,7 +257,7 @@ Container IndividualPatientRecord(BuildContext context) {
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     double columnSpacing = constraints.maxWidth /
-                        (8.4 + 1); // add 1 for the action column
+                        (8.7 + 1); // add 1 for the action column
 
                     return PaginatedDataTable(
                       columnSpacing: columnSpacing,
@@ -321,8 +321,17 @@ class _MyDataTableSource extends DataTableSource {
             Container(
               height: 35,
               width: 35,
+              decoration: BoxDecoration(
+                color: secondaryaccent,
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(width: 2.0, color: secondaryaccent),
+              ),
               child: IconButton(
-                icon: Icon(Icons.remove_red_eye),
+                icon: Icon(
+                  Icons.remove_red_eye,
+                  color: Colors.white,
+                  size: 15,
+                ),
                 onPressed: () {
                   Navigator.of(_context).push(
                     MaterialPageRoute(
