@@ -1,7 +1,10 @@
 import 'dart:convert';
-
+import 'dart:html';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/animation/animation_controller.dart';
@@ -19,6 +22,17 @@ import 'dart:html' as html;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import '../../constants.dart';
+import 'package:intl/intl.dart';
+import 'dart:io' as io;
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:pdf/widgets.dart' show PdfImage;
+import 'dart:io' as io;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:flutter/services.dart' as flutterServices;
+import 'dart:typed_data';
+import 'package:flutter/painting.dart' as painting;
 
 class Inventory_Page extends StatefulWidget {
   const Inventory_Page({
@@ -53,30 +67,26 @@ class _Inventory_PageState extends State<Inventory_Page>
 
   List<Map<String, dynamic>> releaseList = [];
 
+  late Uint8List logobytes;
+  late PdfImage _logoImage;
+  final pdf = pdfWidgets.Document();
+
 //Functions
-  Future<List<Map<String, dynamic>>> fetchInventoryDatas() async {
-    // Fetch inventory data from Firestore
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('medicine').get();
-
-    // Extract the inventory data from the snapshot
-    List<Map<String, dynamic>> inventoryData = snapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data()
-          as Map<String, dynamic>; // Cast the data to Map<String, dynamic>
-      return {
-        'name': data['name'],
-        'category': data['category'],
-        'quantity':
-            data['batches'].fold(0, (sum, batch) => sum + batch['quantity']),
-      };
-    }).toList();
-
-    return inventoryData;
+  fetch() async {
+    ByteData _bytes = await rootBundle.load('images/sinalhanLogo.png');
+    logobytes = _bytes.buffer.asUint8List();
+    setState(() {
+      _logoImage = PdfImage.file(
+        pdf.document,
+        bytes: logobytes,
+      );
+    });
   }
 
-  pdfWidgets.Document generateInventorySummaryReport(
-      List<Map<String, dynamic>> data) {
+  Future<pdfWidgets.Document> generateInventorySummaryReport(
+      List<Map<String, dynamic>> data) async {
     final pdf = pdfWidgets.Document();
+    final headerImage = await addImage(pdf, 'images/sinalhanLogo.png');
 
     pdf.addPage(
       pdfWidgets.MultiPage(
@@ -84,21 +94,60 @@ class _Inventory_PageState extends State<Inventory_Page>
           return pdfWidgets.Container(
             alignment: pdfWidgets.Alignment.centerLeft,
             margin: pdfWidgets.EdgeInsets.only(bottom: 20.0),
-            child: pdfWidgets.Text(
-              'Inventory Summary Report',
-              style: pdfWidgets.TextStyle(
-                fontSize: 20.0,
-                fontWeight: pdfWidgets.FontWeight.bold,
-              ),
+            child: pdfWidgets.Column(
+              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+              children: [
+                pdfWidgets.Row(children: [
+                  pdfWidgets.Container(
+                      width: 50, height: 50, child: headerImage),
+                  pdfWidgets.SizedBox(width: 20),
+                  pdfWidgets.Column(
+                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                    children: [
+                      pdfWidgets.Container(
+                        child: pdfWidgets.Text(
+                          'Barangay Sinalhan Clinic',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Inventory Summary Report',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: pdfWidgets.FontWeight.bold,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Generated on: ${_getFormattedDate()}',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+              ],
             ),
           );
         },
         build: (context) => [
           pdfWidgets.Table.fromTextArray(
             data: [
-              ['Name', 'Category', 'Quantity'],
-              ...data.map(
-                  (item) => [item['name'], item['category'], item['quantity']]),
+              ['Name', 'Category', 'Quantity', 'Threshold', 'Remarks'],
+              ...data.map((item) => [
+                    item['name'],
+                    item['category'],
+                    item['quantity'],
+                    item['threshold'] != null
+                        ? item['threshold'].toString()
+                        : '',
+                    item['quantity'] < item['threshold']
+                        ? 'Restock needed'
+                        : 'Sufficient'
+                  ]),
             ],
           ),
         ],
@@ -108,32 +157,286 @@ class _Inventory_PageState extends State<Inventory_Page>
     return pdf;
   }
 
-  void _generateAndDownloadReport() async {
-    final inventoryData = await fetchInventoryData();
+  Future<pdfWidgets.Document> generateInventoryExpiryReport(
+      List<Map<String, dynamic>> data) async {
+    final pdf = pdfWidgets.Document();
+    final headerImage = await addImage(pdf, 'images/sinalhanLogo.png');
 
-    final pdf = generateInventorySummaryReport(inventoryData);
+    pdf.addPage(
+      pdfWidgets.MultiPage(
+        header: (context) {
+          return pdfWidgets.Container(
+            alignment: pdfWidgets.Alignment.centerLeft,
+            margin: pdfWidgets.EdgeInsets.only(bottom: 20.0),
+            child: pdfWidgets.Column(
+              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+              children: [
+                pdfWidgets.Row(children: [
+                  pdfWidgets.Container(
+                      width: 50, height: 50, child: headerImage),
+                  pdfWidgets.SizedBox(width: 20),
+                  pdfWidgets.Column(
+                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                    children: [
+                      pdfWidgets.Container(
+                        child: pdfWidgets.Text(
+                          'Barangay Sinalhan Clinic',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Expiry Date Report',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: pdfWidgets.FontWeight.bold,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Generated on: ${_getFormattedDate()}',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+              ],
+            ),
+          );
+        },
+        build: (context) => [
+          pdfWidgets.Table.fromTextArray(
+            data: [
+              [
+                'Name',
+                'Category',
+                'Manufacturing Date',
+                'Expiry Date',
+                'Quantity',
+                "Days Remaining"
+              ],
+              ...data.map((item) => [
+                    item['medicineName'],
+                    item['category'],
+                    item['manufacturingDate'],
+                    item['expiryDate'],
+                    item['quantity'],
+                    item['daysRemaining'],
+                  ]),
+            ],
+          ),
+        ],
+      ),
+    );
 
-    final bytes = await pdf.save();
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..style.display = 'none'
-      ..download = 'inventory_summary_report.pdf';
-    html.document.body?.children.add(anchor);
-    anchor.click();
-    html.document.body?.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
+    return pdf;
   }
 
-  void downloadPdfReport(pdfWidgets.Document pdf) async {
+  Future<pdfWidgets.Document> generateInventoryBatchReport(
+      List<Map<String, dynamic>> data) async {
+    final pdf = pdfWidgets.Document();
+    final headerImage = await addImage(pdf, 'images/sinalhanLogo.png');
+
+    pdf.addPage(
+      pdfWidgets.MultiPage(
+        header: (context) {
+          return pdfWidgets.Container(
+            alignment: pdfWidgets.Alignment.centerLeft,
+            margin: pdfWidgets.EdgeInsets.only(bottom: 20.0),
+            child: pdfWidgets.Column(
+              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+              children: [
+                pdfWidgets.Row(children: [
+                  pdfWidgets.Container(
+                      width: 50, height: 50, child: headerImage),
+                  pdfWidgets.SizedBox(width: 20),
+                  pdfWidgets.Column(
+                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                    children: [
+                      pdfWidgets.Container(
+                        child: pdfWidgets.Text(
+                          'Barangay Sinalhan Clinic',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Batch Report',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: pdfWidgets.FontWeight.bold,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Generated on: ${_getFormattedDate()}',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+              ],
+            ),
+          );
+        },
+        build: (context) => [
+          pdfWidgets.Table.fromTextArray(
+            data: [
+              [
+                'Name',
+                'Category',
+                'Manufacturing Date',
+                'Expiry Date',
+                'Quantity',
+              ],
+              ...data.map((item) => [
+                    item['medicineName'],
+                    item['category'],
+                    item['manufacturingDate'],
+                    item['expiryDate'],
+                    item['quantity'],
+                  ]),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return pdf;
+  }
+
+  Future<pdfWidgets.Widget> addImage(
+      pdfWidgets.Document pdf, String filename) async {
+    final imageByteData = await rootBundle.load('$filename');
+    final imageUint8List = imageByteData.buffer
+        .asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+
+    final image = pdfWidgets.MemoryImage(imageUint8List);
+
+    return pdfWidgets.Center(
+      child: pdfWidgets.Image(image),
+    );
+  }
+
+  Future<void> generateAndDownloadInventorySummaryReport(
+      List<Map<String, dynamic>> inventoryData) async {
+    final pdf = await generateInventorySummaryReport(inventoryData);
+    downloadPdfReport(pdf, "inventory_summary_report.pdf");
+  }
+
+  Future<void> generateAndDownloadBatchReport(
+      List<Map<String, dynamic>> inventoryData) async {
+    final pdf = await generateInventoryBatchReport(inventoryData);
+    downloadPdfReport(pdf, "batch_report.pdf");
+  }
+
+  Future<void> generateAndDownloadExpiryReport(
+      List<Map<String, dynamic>> inventoryData) async {
+    final pdf = await generateInventoryExpiryReport(inventoryData);
+    downloadPdfReport(pdf, "expiry_date_report.pdf");
+  }
+
+  Future<void> generateAndDownloadReleasedMedicineReport(
+      List<Map<String, dynamic>> inventoryData) async {
+    final pdf = await generateReleasedMedicineReport(inventoryData);
+    downloadPdfReport(pdf, "released_medicine_report.pdf");
+  }
+
+  Future<pdfWidgets.Document> generateReleasedMedicineReport(
+    List<Map<String, dynamic>> data,
+  ) async {
+    final pdf = pdfWidgets.Document();
+    final headerImage = await addImage(pdf,
+        'images/sinalhanLogo.png'); // Replace 'your-image-filename.png' with the actual image file name
+
+    pdf.addPage(
+      pdfWidgets.Page(
+        build: (context) {
+          return pdfWidgets.Column(
+            crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+            children: [
+              pdfWidgets.Row(children: [
+                pdfWidgets.Container(width: 50, height: 50, child: headerImage),
+                pdfWidgets.SizedBox(width: 20),
+                pdfWidgets.Column(
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                  children: [
+                    pdfWidgets.Container(
+                      child: pdfWidgets.Text(
+                        'Barangay Sinalhan Clinic',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                    pdfWidgets.Text(
+                      'Released Medicine Report',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: pdfWidgets.FontWeight.bold,
+                      ),
+                    ),
+                    pdfWidgets.Text(
+                      'Generated on: ${_getFormattedDate()}',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 10.0,
+                        color: PdfColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ]),
+              pdfWidgets.SizedBox(height: 10), // Adjust the height as needed
+              // Rest of your content
+              pdfWidgets.Table.fromTextArray(
+                data: [
+                  [
+                    'Released Date',
+                    'Recipient Name',
+                    'Contact Number',
+                    'Medicine Name',
+                    'Quantity Released',
+                    'Released By',
+                  ],
+                  ...data.map((item) => [
+                        item['releaseDate'],
+                        item['recipientName'],
+                        item['recipientContactNumber'],
+                        item['medicineName'],
+                        item['quantity'],
+                        item['releasedBy'],
+                      ]),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    // Replace 'your-image-filename.png' with the actual image file name
+    return pdf;
+  }
+
+  String _getFormattedDate() {
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('MMMM d, yyyy, hh:mm a');
+    return formatter.format(now);
+  }
+
+  void downloadPdfReport(pdfWidgets.Document pdf, String fileName) async {
     final bytes = await pdf.save();
     final blob = html.Blob([bytes], 'application/pdf');
     final url = html.Url.createObjectUrlFromBlob(blob);
     final anchor = html.document.createElement('a') as html.AnchorElement
       ..href = url
       ..style.display = 'none'
-      ..download = 'inventory_summary_report.pdf';
+      ..download = fileName;
     html.document.body?.children.add(anchor);
     anchor.click();
     html.document.body?.children.remove(anchor);
@@ -149,6 +452,7 @@ class _Inventory_PageState extends State<Inventory_Page>
     for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
       String name = medicineDoc['name'];
       String category = medicineDoc['category'];
+      int threshold = medicineDoc['threshold'];
 
       QuerySnapshot batchSnapshot =
           await medicineDoc.reference.collection('batches').get();
@@ -163,6 +467,7 @@ class _Inventory_PageState extends State<Inventory_Page>
         'name': name,
         'category': category,
         'quantity': totalQuantity,
+        'threshold': threshold,
       };
 
       inventoryData.add(inventoryItem);
@@ -171,42 +476,136 @@ class _Inventory_PageState extends State<Inventory_Page>
     return inventoryData;
   }
 
-  Future<List<Map<String, dynamic>>> fetchMedicineData() async {
-    // Fetch main documents from "medicine" collection
-    QuerySnapshot mainSnapshot =
+  Future<List<Map<String, dynamic>>> fetchInventoryDataForExpiryReport() async {
+    QuerySnapshot medicineSnapshot =
         await FirebaseFirestore.instance.collection('medicine').get();
 
-    List<Map<String, dynamic>> reportData = [];
+    List<Map<String, dynamic>> inventoryData = [];
 
-    // Iterate over each main document
-    for (QueryDocumentSnapshot mainDoc in mainSnapshot.docs) {
-      String medicineName = mainDoc.get('name');
-      String category = mainDoc.get('category');
+    for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
+      String medicineName = medicineDoc['name'];
+      String category = medicineDoc['category'];
 
-      // Fetch documents from "batches" subcollection for the current main document
-      QuerySnapshot batchSnapshot = await FirebaseFirestore.instance
-          .collection('medicine')
-          .doc(mainDoc.id)
-          .collection('batches')
-          .get();
+      QuerySnapshot batchSnapshot =
+          await medicineDoc.reference.collection('batches').get();
 
-      // Iterate over each batch document
-      for (QueryDocumentSnapshot batchDoc in batchSnapshot.docs) {
-        int quantity = batchDoc.get('quantity');
+      for (DocumentSnapshot batchDoc in batchSnapshot.docs) {
+        String batchNumber = batchDoc['batchNumber'].toString();
+        Timestamp expiryDate = batchDoc['expiryDate'];
+        Timestamp manufacturingDate = batchDoc['manufacturingDate'];
+        int quantity = batchDoc['quantity'];
 
-        // Create a map with the required data
-        Map<String, dynamic> reportEntry = {
-          'medicineName': medicineName,
+        DateTime expiryDateTime = expiryDate.toDate();
+        DateTime manufacturingDateTime = manufacturingDate.toDate();
+        DateTime currentDate = DateTime.now();
+
+        int daysRemaining = expiryDateTime.difference(currentDate).inDays + 1;
+
+        String formattedExpiryDate =
+            DateFormat('MMM dd, yyyy').format(expiryDateTime);
+        String formattedManufacturingDate =
+            DateFormat('MMM dd, yyyy').format(manufacturingDateTime);
+
+        Map<String, dynamic> inventoryItem = {
+          'medicineName': '$medicineName - $batchNumber',
           'category': category,
+          'expiryDate': formattedExpiryDate,
+          'manufacturingDate': formattedManufacturingDate,
           'quantity': quantity,
+          'daysRemaining':
+              daysRemaining > 0 ? daysRemaining : "Already Expired",
         };
 
-        // Add the map to the report data list
-        reportData.add(reportEntry);
+        inventoryData.add(inventoryItem);
       }
     }
 
-    return reportData;
+    return inventoryData;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchInventoryBatchReport() async {
+    QuerySnapshot medicineSnapshot =
+        await FirebaseFirestore.instance.collection('medicine').get();
+
+    List<Map<String, dynamic>> inventoryData = [];
+
+    for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
+      String medicineName = medicineDoc['name'];
+      String category = medicineDoc['category'];
+
+      QuerySnapshot batchSnapshot =
+          await medicineDoc.reference.collection('batches').get();
+
+      for (DocumentSnapshot batchDoc in batchSnapshot.docs) {
+        String batchNumber = batchDoc['batchNumber'].toString();
+        Timestamp expiryDate = batchDoc['expiryDate'];
+        Timestamp manufacturingDate = batchDoc['manufacturingDate'];
+        int quantity = batchDoc['quantity'];
+
+        DateTime expiryDateTime = expiryDate.toDate();
+        DateTime manufacturingDateTime = manufacturingDate.toDate();
+        DateTime currentDate = DateTime.now();
+
+        int daysRemaining = expiryDateTime.difference(currentDate).inDays + 1;
+
+        String formattedExpiryDate =
+            DateFormat('MMM dd, yyyy').format(expiryDateTime);
+        String formattedManufacturingDate =
+            DateFormat('MMM dd, yyyy').format(manufacturingDateTime);
+
+        Map<String, dynamic> inventoryItem = {
+          'medicineName': '$medicineName - $batchNumber',
+          'category': category,
+          'expiryDate': formattedExpiryDate,
+          'manufacturingDate': formattedManufacturingDate,
+          'quantity': quantity,
+        };
+
+        inventoryData.add(inventoryItem);
+      }
+    }
+
+    return inventoryData;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchReleaseHistoryReport() async {
+    QuerySnapshot releaseSnapshot = await FirebaseFirestore.instance
+        .collection('released medicine')
+        .orderBy('timestamp', descending: true)
+        .get();
+    List<Map<String, dynamic>> releaseHistoryData = [];
+
+    for (DocumentSnapshot releaseDoc in releaseSnapshot.docs) {
+      String recipientName = releaseDoc['recipientName'];
+      String recipientContactNumber = releaseDoc['recipientContactNumber'];
+      String releasedBy = releaseDoc['releasedBy'];
+      Timestamp timestamp = releaseDoc['timestamp'];
+
+      List<dynamic> medicineList = releaseDoc['releasedMedicine'];
+
+      for (dynamic medicineData in medicineList) {
+        String batchNumber = medicineData['batchNumber'].toString();
+        String medicineName = medicineData['medicineName'];
+        int quantity = medicineData['quantity'];
+
+        DateTime releaseDateTime = timestamp.toDate();
+        String formattedReleaseDate =
+            DateFormat('MMM dd, yyyy').format(releaseDateTime);
+
+        Map<String, dynamic> releaseItem = {
+          'recipientName': recipientName,
+          'recipientContactNumber': recipientContactNumber,
+          'releasedBy': releasedBy,
+          'releaseDate': formattedReleaseDate,
+          'medicineName': '$medicineName - $batchNumber',
+          'quantity': quantity,
+        };
+
+        releaseHistoryData.add(releaseItem);
+      }
+    }
+
+    return releaseHistoryData;
   }
 
   void showReleaseListDialog(
@@ -520,7 +919,7 @@ class _Inventory_PageState extends State<Inventory_Page>
     }
   }
 
-  void uploadnewBatchData(medicineId, medName) async {
+  void uploadNewBatchData(medicineId, medName) async {
     try {
       // Create a new document in the "medicine" collection
       DocumentReference medicineRef = FirebaseFirestore.instance
@@ -528,18 +927,25 @@ class _Inventory_PageState extends State<Inventory_Page>
           .doc(medicineId)
           .collection('batches')
           .doc();
+
       CollectionReference collectionRef = FirebaseFirestore.instance
           .collection('medicine')
           .doc(medicineId)
           .collection('batches');
 
-      int batchNumber = await countDocuments(collectionRef);
+      // Fetch the existing batch numbers
+      QuerySnapshot batchSnapshot = await collectionRef.get();
+      List<int> existingBatchNumbers =
+          batchSnapshot.docs.map((doc) => doc['batchNumber'] as int).toList();
+
+      // Find the next available batch number
+      int nextBatchNumber = findNextAvailableBatchNumber(existingBatchNumbers);
 
       // Set the data for the medicine document
       await medicineRef.set({
         'expiryDate': expiryDate,
         'manufacturingDate': manufacturingDate,
-        'batchNumber': batchNumber,
+        'batchNumber': nextBatchNumber,
         'batchId': medicineRef.id,
         'medicineName': medName,
         'medicineId': medicineId,
@@ -553,6 +959,16 @@ class _Inventory_PageState extends State<Inventory_Page>
     }
   }
 
+  int findNextAvailableBatchNumber(List<int> existingBatchNumbers) {
+    int nextBatchNumber = 1;
+
+    while (existingBatchNumbers.contains(nextBatchNumber)) {
+      nextBatchNumber++;
+    }
+
+    return nextBatchNumber;
+  }
+
   Future<int> countDocuments(CollectionReference collectionRef) async {
     QuerySnapshot snapshot = await collectionRef.get();
     int count = snapshot.size;
@@ -561,6 +977,7 @@ class _Inventory_PageState extends State<Inventory_Page>
 
   @override
   void initState() {
+    fetch();
     _controller = AnimationController(vsync: this);
   }
 
@@ -577,6 +994,30 @@ class _Inventory_PageState extends State<Inventory_Page>
       return SupplyOverview();
     } else if (dropdownValue == 'Reports') {
       return Reports();
+    }
+  }
+
+  void deleteBatch(medicineId, batchId) async {
+    try {
+      // Get a reference to the document in the collection "medicine"
+      DocumentReference medicineRef =
+          FirebaseFirestore.instance.collection('medicine').doc(medicineId);
+
+      // Access the subcollection "batches" using the reference
+      CollectionReference batchesRef = medicineRef.collection('batches');
+
+      // Query the subcollection to find the document with the specified batchId
+      QuerySnapshot querySnapshot =
+          await batchesRef.where('batchId', isEqualTo: batchId).get();
+
+      // Iterate over the query snapshot and delete the document(s) found
+      for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
+        await docSnapshot.reference.delete();
+      }
+      setState(() {});
+      print('Batch document deleted successfully!');
+    } catch (error) {
+      print('Error deleting batch document: $error');
     }
   }
 
@@ -661,7 +1102,7 @@ class _Inventory_PageState extends State<Inventory_Page>
                       quantity != null) {
                     // Perform any necessary logic with the entered data
 
-                    uploadnewBatchData(medicineId, medName);
+                    uploadNewBatchData(medicineId, medName);
                     // Close the dialog
                     Navigator.of(context).pop();
                   }
@@ -1059,21 +1500,23 @@ class _Inventory_PageState extends State<Inventory_Page>
                     ),
                     child: PaginatedDataTable(
                       columnSpacing:
-                          MediaQuery.of(context).size.width / (8.5 + 1),
+                          MediaQuery.of(context).size.width / (8.9 + 1),
                       rowsPerPage: rowsPerPage,
                       columns: [
                         DataColumn(label: Text('Medicine Name')),
-                        DataColumn(label: Text('Expiration Date')),
                         DataColumn(label: Text('Manufacturing Date')),
+                        DataColumn(label: Text('Expiration Date')),
                         DataColumn(label: Text('Quantity')),
                         DataColumn(label: Text(''))
                       ],
                       source: BatchDataTableSource(
-                          releaseList: releaseList,
-                          context: context,
-                          batches: batchSnapshot.data!
-                              .expand((batchList) => batchList)
-                              .toList()),
+                        releaseList: releaseList,
+                        context: context,
+                        batches: batchSnapshot.data!
+                            .expand((batchList) => batchList)
+                            .toList(),
+                        addnewBatchCallback: deleteBatch,
+                      ),
                     ),
                   ),
                 );
@@ -1085,52 +1528,175 @@ class _Inventory_PageState extends State<Inventory_Page>
     );
   }
 
-  Column Reports() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Row Reports() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 300,
-              child: TextField(
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.deny(
-                      RegExp(r'[!@#<>?":_`~;[\]\\|=+)(*&^%$#@!,./\0-9]')),
-                  LengthLimitingTextInputFormatter(11),
-                ],
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                  hintText: 'Search',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: const Color(0xffF7F7F7),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            )
-          ],
-        ),
-        Center(
-          child: ElevatedButton(
-            onPressed: () async {
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () async {
               List<Map<String, dynamic>> inventoryData =
                   await fetchInventoryData();
-              pdfWidgets.Document pdf =
-                  generateInventorySummaryReport(inventoryData);
-              downloadPdfReport(pdf);
+              Future<void> pdf =
+                  generateAndDownloadInventorySummaryReport(inventoryData);
             },
-            child: Text('Generate Report'),
+            child: Container(
+              width: 150,
+              height: 100,
+              decoration: BoxDecoration(
+                color: secondaryaccent, // Set the fill color to red
+                borderRadius:
+                    BorderRadius.circular(10.0), // Set the border radius
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.book,
+                    color: Colors.white,
+                  ),
+                  Center(
+                    child: Text(
+                      "Inventory Summary Report",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight:
+                              FontWeight.bold // Set the font color to white
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        )
+        ),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () async {
+              List<Map<String, dynamic>> inventoryData =
+                  await fetchInventoryBatchReport();
+              Future<void> pdf = generateAndDownloadBatchReport(inventoryData);
+            },
+            child: Container(
+              width: 150,
+              height: 100,
+              decoration: BoxDecoration(
+                color: secondaryaccent, // Set the fill color to red
+                borderRadius:
+                    BorderRadius.circular(10.0), // Set the border radius
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.boxArchive,
+                    color: Colors.white,
+                  ),
+                  Center(
+                    child: Text(
+                      "Batch Report",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight:
+                              FontWeight.bold // Set the font color to white
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () async {
+              List<Map<String, dynamic>> inventoryData =
+                  await fetchInventoryDataForExpiryReport();
+              // pdfWidgets.Document pdf =
+              //     generateInventoryExpiryReport(inventoryData);
+              // downloadPdfReport(pdf, "expiry_date_report.pdf");
+              Future<void> pdf = generateAndDownloadExpiryReport(inventoryData);
+            },
+            child: Container(
+              width: 150,
+              height: 100,
+              decoration: BoxDecoration(
+                color: secondaryaccent, // Set the fill color to red
+                borderRadius:
+                    BorderRadius.circular(10.0), // Set the border radius
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.trash,
+                    color: Colors.white,
+                  ),
+                  Center(
+                    child: Text(
+                      "Expiry Date Report",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight:
+                              FontWeight.bold // Set the font color to white
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () async {
+              List<Map<String, dynamic>> inventoryData =
+                  await fetchReleaseHistoryReport();
+              Future<void> pdf =
+                  generateAndDownloadReleasedMedicineReport(inventoryData);
+            },
+            child: Container(
+              width: 150,
+              height: 100,
+              decoration: BoxDecoration(
+                color: secondaryaccent, // Set the fill color to red
+                borderRadius:
+                    BorderRadius.circular(10.0), // Set the border radius
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.bookBookmark,
+                    color: Colors.white,
+                  ),
+                  Center(
+                    child: Text(
+                      "Released Medicine Report",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight:
+                              FontWeight.bold // Set the font color to white
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1262,11 +1828,14 @@ class BatchDataTableSource extends DataTableSource {
   final List<QueryDocumentSnapshot> batches;
   final BuildContext context;
   List<Map<String, dynamic>> releaseList;
+  Function(String, String) addnewBatchCallback;
 
-  BatchDataTableSource(
-      {required this.batches,
-      required this.context,
-      required this.releaseList});
+  BatchDataTableSource({
+    required this.batches,
+    required this.context,
+    required this.releaseList,
+    required this.addnewBatchCallback,
+  });
 
   @override
   DataRow getRow(int index) {
@@ -1284,105 +1853,144 @@ class BatchDataTableSource extends DataTableSource {
     return DataRow(cells: [
       // DataCell(Text(medicineName)),
       DataCell(Text(medicineName.toString() + "-" + batchNumber.toString())),
-      DataCell(Text(expiryDateFormatted.toString())),
       DataCell(Text(manufacturingDateFormatted.toString())),
+
+      DataCell(
+        Text(
+          expiryDateFormatted.toString(),
+          style: TextStyle(
+            color: expiryDate.isBefore(DateTime.now()) ? Colors.red : null,
+          ),
+        ),
+      ),
       DataCell(Text(quantity.toString())),
       DataCell(
-        Tooltip(
-          message: 'Add to Release List',
-          child: Container(
-            width: 35,
-            height: 35,
-            decoration: BoxDecoration(
-              color: secondaryaccent,
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(width: 2.0, color: secondaryaccent),
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.add,
-                size: 15,
-                color: Colors.white,
+        Row(
+          children: [
+            Tooltip(
+              message: 'Remove Batch',
+              child: Container(
+                width: 35,
+                height: 35,
+                decoration: BoxDecoration(
+                  color: secondaryaccent,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(width: 2.0, color: secondaryaccent),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.delete,
+                    size: 15,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    addnewBatchCallback(batch['medicineId'], batch['batchId']);
+                  },
+                ),
               ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    String medicineName =
-                        ''; // Variable to store the selected medicine name
-                    int quantity = 0; // Variable to store the selected quantity
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Tooltip(
+              message: 'Add to Release List',
+              child: Container(
+                width: 35,
+                height: 35,
+                decoration: BoxDecoration(
+                  color: primarycolor,
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(width: 2.0, color: primarycolor),
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.add,
+                    size: 15,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        String medicineName =
+                            ''; // Variable to store the selected medicine name
+                        int quantity =
+                            0; // Variable to store the selected quantity
 
-                    return AlertDialog(
-                      title: Text('Add to Release List'),
-                      content: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Text('Enter the quantity:'),
-                            TextField(
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(5),
+                        return AlertDialog(
+                          title: Text('Add to Release List'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Text('Enter the quantity:'),
+                                TextField(
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(5),
+                                  ],
+                                  onChanged: (value) {
+                                    quantity = int.tryParse(value) ?? 0;
+                                  },
+                                ),
                               ],
-                              onChanged: (value) {
-                                quantity = int.tryParse(value) ?? 0;
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
                               },
+                              child: Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                // Add the selected medicine name and quantity to the release list
+                                if (quantity > 0 &&
+                                    quantity <= batch['quantity']) {
+                                  // Add the medicine to the release list
+                                  releaseList.add({
+                                    'medicineName': batch['medicineName'],
+                                    'quantity': quantity,
+                                    'batchNumber': batchNumber,
+                                    'batchId': batch['batchId'],
+                                    'medicineId': batch['medicineId']
+                                  });
+
+                                  Navigator.of(context).pop();
+                                } else {
+                                  // Show an error message or alert
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Invalid Quantity'),
+                                        content: Text(
+                                            'Please enter a valid quantity.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('OK'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                              child: Text('Add'),
                             ),
                           ],
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Add the selected medicine name and quantity to the release list
-                            if (quantity > 0 && quantity <= batch['quantity']) {
-                              // Add the medicine to the release list
-                              releaseList.add({
-                                'medicineName': batch['medicineName'],
-                                'quantity': quantity,
-                                'batchNumber': batchNumber,
-                                'batchId': batch['batchId'],
-                                'medicineId': batch['medicineId']
-                              });
-
-                              Navigator.of(context).pop();
-                            } else {
-                              // Show an error message or alert
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: Text('Invalid Quantity'),
-                                    content:
-                                        Text('Please enter a valid quantity.'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                          },
-                          child: Text('Add'),
-                        ),
-                      ],
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     ]);
@@ -1545,9 +2153,7 @@ class _MyDataTableSource extends DataTableSource {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                if (editedMedicineName != null &&
-                                    editedThreshold != null &&
-                                    editedCategory != null) {
+                                if (editedThreshold != null) {
                                   final docRef = FirebaseFirestore.instance
                                       .collection('medicine')
                                       .doc(data['medicine id']);
@@ -1782,9 +2388,7 @@ class _MedicineList extends DataTableSource {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              if (editedMedicineName != null &&
-                                  editedThreshold != null &&
-                                  editedCategory != null) {
+                              if (editedThreshold != null) {
                                 final docRef = FirebaseFirestore.instance
                                     .collection('medicine')
                                     .doc(data['medicine id']);
