@@ -210,10 +210,48 @@ class _SchedulesState extends State<Schedules> {
                                         CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text('Name: $patientName'),
-                                      Text(
-                                          'Scheduled Date: $formattedStartTime'),
-                                      Text('Category: $category'),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Name: ',
+                                            style:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          Text(
+                                            '$patientName',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Scheduled Date: ',
+                                            style:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          Text(
+                                            '$formattedStartTime',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Category: ',
+                                            style:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          Text(
+                                            '$category',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                   actions: [
