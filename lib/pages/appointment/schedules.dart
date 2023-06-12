@@ -44,6 +44,7 @@ class _SchedulesState extends State<Schedules> {
     for (QueryDocumentSnapshot patientDoc in patientSnapshot.docs) {
       String firstName = patientDoc['first name'];
       String lastName = patientDoc['last name'];
+      String category = patientDoc['category'];
 
       QuerySnapshot appointmentSnapshot = await patientDoc.reference
           .collection('appointments')
@@ -67,6 +68,7 @@ class _SchedulesState extends State<Schedules> {
                   endTime: visitDate.add(Duration(hours: 12)),
                   subject: reasonOfVisit,
                   patientName: '$firstName $lastName', // Add patient name
+                  category: '$category', // Add patient name
                 );
               }
             }
@@ -179,11 +181,54 @@ class _SchedulesState extends State<Schedules> {
                         view: CalendarView.month,
                         monthViewSettings: MonthViewSettings(
                             showAgenda: true,
-                            agendaItemHeight: 100,
+                            agendaItemHeight: 70,
                             agendaStyle: AgendaStyle(
                                 appointmentTextStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white))),
+                        onTap: (CalendarTapDetails details) {
+                          if (details.targetElement ==
+                              CalendarElement.appointment) {
+                            // Retrieve the meeting details
+                            String patientName =
+                                details.appointments![0].patientName;
+                            String category = details.appointments![0].category;
+                            DateTime startTime =
+                                details.appointments![0].startTime;
+                            DateFormat dateFormat = DateFormat('MMMM d, yyyy');
+                            String formattedStartTime =
+                                dateFormat.format(startTime);
+
+                            // Show a dialog with the meeting details
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Meeting Details'),
+                                  content: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Name: $patientName'),
+                                      Text(
+                                          'Scheduled Date: $formattedStartTime'),
+                                      Text('Category: $category'),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: Text('Close'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        },
                         dataSource:
                             _MyCalendarDataSource(appointments: _appointments),
                         controller: _calendarController,
@@ -222,18 +267,25 @@ class _MyCalendarDataSource extends CalendarDataSource {
   DateTime getEndTime(int index) {
     return appointments![index].endTime;
   }
+
+  @override
+  DateTime getCategory(int index) {
+    return appointments![index].category;
+  }
 }
 
 class Appointment {
   final DateTime startTime;
   final DateTime endTime;
   final String subject;
+  final String category;
   final String patientName; // Add the patientName property
 
   Appointment({
     required this.startTime,
     required this.endTime,
     required this.subject,
+    required this.category,
     required this.patientName,
   });
 }
