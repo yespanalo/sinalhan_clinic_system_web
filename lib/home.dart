@@ -8,6 +8,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
+import 'package:sinalhan_clinic_system_web/pages/appointment/schedules.dart';
 import 'package:sinalhan_clinic_system_web/pages/inventory/inventory_page.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientRecords_page.dart';
 import 'package:sinalhan_clinic_system_web/pages/users/usersPage.dart';
@@ -146,7 +147,7 @@ class _HomeState extends State<Home> {
     String period = _timeOfDay.period == DayPeriod.am ? "AM" : "PM";
     final List<dynamic> pages = [
       PatientRecords(timeOfDay: _timeOfDay, period: period),
-      PatientRecords(timeOfDay: _timeOfDay, period: period),
+      Schedules(timeOfDay: _timeOfDay, period: period),
       Inventory_Page(timeOfDay: _timeOfDay, period: period),
       PatientRecords(timeOfDay: _timeOfDay, period: period),
       PatientRecords(timeOfDay: _timeOfDay, period: period),
