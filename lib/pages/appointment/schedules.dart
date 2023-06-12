@@ -26,6 +26,8 @@ class _SchedulesState extends State<Schedules> {
     return format.format(dt);
   }
 
+  CalendarController _calendarController = CalendarController();
+
   List<Appointment> _appointments = [];
   @override
   void initState() {
@@ -34,31 +36,52 @@ class _SchedulesState extends State<Schedules> {
   }
 
   void loadAppointments() async {
-    QuerySnapshot appointmentsSnapshot =
-        await FirebaseFirestore.instance.collectionGroup('appointments').get();
+    QuerySnapshot patientSnapshot =
+        await FirebaseFirestore.instance.collection('patients').get();
 
     List<Appointment> appointments = [];
-    appointmentsSnapshot.docs.forEach((appointmentDoc) {
-      Map<String, dynamic>? appointmentData =
-          appointmentDoc.data() as Map<String, dynamic>?;
 
-      if (appointmentData != null) {
-        DateTime? visitDate = appointmentData['visitDate']?.toDate();
-        String? reasonOfVisit = appointmentData['reasonOfVisit'];
+    for (QueryDocumentSnapshot patientDoc in patientSnapshot.docs) {
+      String firstName = patientDoc['first name'];
+      String lastName = patientDoc['last name'];
 
-        if (visitDate != null && reasonOfVisit != null) {
-          Appointment appointment = Appointment(
-            startTime: visitDate,
-            endTime: visitDate.add(Duration(hours: 1)),
-            subject: reasonOfVisit,
-          );
-          appointments.add(appointment);
-        }
-      }
-    });
+      QuerySnapshot appointmentSnapshot = await patientDoc.reference
+          .collection('appointments')
+          .orderBy('visit date')
+          .get();
+
+      List<Appointment> patientAppointments = appointmentSnapshot.docs
+          .map((appointmentDoc) {
+            Map<String, dynamic>? data =
+                appointmentDoc.data() as Map<String, dynamic>?;
+
+            if (data != null) {
+              DateTime? visitDate = data['visit date']?.toDate();
+              String? reasonOfVisit = data['reason of visit'];
+
+              if (visitDate != null && reasonOfVisit != null) {
+                final DateTime today = DateTime.now();
+
+                return Appointment(
+                  startTime: visitDate.add(Duration(hours: 8)),
+                  endTime: visitDate.add(Duration(hours: 12)),
+                  subject: reasonOfVisit,
+                  patientName: '$firstName $lastName', // Add patient name
+                );
+              }
+            }
+
+            return null;
+          })
+          .whereType<Appointment>()
+          .toList();
+
+      appointments.addAll(patientAppointments);
+    }
 
     setState(() {
       _appointments = appointments;
+      print(_appointments);
     });
   }
 
@@ -117,9 +140,63 @@ class _SchedulesState extends State<Schedules> {
                   ],
                 ),
               ),
-              SfCalendar(
-                view: CalendarView.month, // Display the calendar in month view
-                dataSource: _DataSource(appointments: _appointments),
+              SizedBox(
+                height: 50,
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                padding: EdgeInsets.all(50),
+                width: MediaQuery.of(context).size.width / 1.5,
+                height: MediaQuery.of(context).size.height / 1.3,
+                child: Column(
+                  children: [
+                    Container(
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_back),
+                            onPressed: () {
+                              _calendarController
+                                  .backward!(); // Go to the previous month
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_forward),
+                            onPressed: () {
+                              _calendarController
+                                  .forward!(); // Go to the next month
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: SfCalendar(
+                        initialSelectedDate: DateTime.now(),
+                        view: CalendarView.month,
+                        monthViewSettings: MonthViewSettings(
+                            showAgenda: true,
+                            agendaItemHeight: 100,
+                            agendaStyle: AgendaStyle(
+                                appointmentTextStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white))),
+                        dataSource:
+                            _MyCalendarDataSource(appointments: _appointments),
+                        controller: _calendarController,
+                        headerStyle: CalendarHeaderStyle(
+                          textStyle: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -127,10 +204,36 @@ class _SchedulesState extends State<Schedules> {
   }
 }
 
-class _DataSource extends CalendarDataSource {
-  _DataSource({required List<Appointment> appointments}) {
-    appointments.forEach((appointment) {
-      this.appointments?.add(appointment);
-    });
+class _MyCalendarDataSource extends CalendarDataSource {
+  _MyCalendarDataSource({required List<Appointment> appointments}) {
+    this.appointments = appointments;
   }
+  @override
+  String getSubject(int index) {
+    return appointments![index].patientName; // Use meeting name as subject
+  }
+
+  @override
+  DateTime getStartTime(int index) {
+    return appointments![index].startTime;
+  }
+
+  @override
+  DateTime getEndTime(int index) {
+    return appointments![index].endTime;
+  }
+}
+
+class Appointment {
+  final DateTime startTime;
+  final DateTime endTime;
+  final String subject;
+  final String patientName; // Add the patientName property
+
+  Appointment({
+    required this.startTime,
+    required this.endTime,
+    required this.subject,
+    required this.patientName,
+  });
 }
