@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientform.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientformedit.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 void main() async {
@@ -23,19 +24,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+        title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
 
-      home: LoginPage(),
+        // home: LoginPage(),
 
-      // home: PatientProfiel(
-      //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
-      // ),
+        // home: PatientProfiel(
+        //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
+        // ),
 
-      // home: IndividualPatientRecordForm(),
-    );
+        // home: IndividualPatientRecordForm(),
+        home: IndividualPatientEditForm(
+          uid: "8gNCQo3k5jdBHqNYSvvmMBLlCFb2",
+        ));
   }
 }

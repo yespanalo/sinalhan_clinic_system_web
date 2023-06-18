@@ -975,18 +975,6 @@ class _Inventory_PageState extends State<Inventory_Page>
     return count + 1;
   }
 
-  @override
-  void initState() {
-    fetch();
-    _controller = AnimationController(vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   dynamic returnRecord() {
     if (dropdownValue == 'Medicine List') {
       return MedicineSupply();
@@ -1883,8 +1871,38 @@ class BatchDataTableSource extends DataTableSource {
                     size: 15,
                     color: Colors.white,
                   ),
-                  onPressed: () {
-                    addnewBatchCallback(batch['medicineId'], batch['batchId']);
+                  onPressed: () async {
+                    bool confirmDelete = await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Confirm Delete"),
+                          content: Text(
+                              "Are you sure you want to delete this medicine?"),
+                          actions: [
+                            TextButton(
+                              child: Text("Cancel"),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(false); // Return false when canceled
+                              },
+                            ),
+                            TextButton(
+                              child: Text("Delete"),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pop(true); // Return true when confirmed
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (confirmDelete == true) {
+                      addnewBatchCallback(
+                          batch['medicineId'], batch['batchId']);
+                    }
                   },
                 ),
               ),
@@ -1892,104 +1910,107 @@ class BatchDataTableSource extends DataTableSource {
             SizedBox(
               width: 10,
             ),
-            Tooltip(
-              message: 'Add to Release List',
-              child: Container(
-                width: 35,
-                height: 35,
-                decoration: BoxDecoration(
-                  color: primarycolor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(width: 2.0, color: primarycolor),
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.add,
-                    size: 15,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        String medicineName =
-                            ''; // Variable to store the selected medicine name
-                        int quantity =
-                            0; // Variable to store the selected quantity
+            expiryDate.isAfter(DateTime.now())
+                ? Tooltip(
+                    message: 'Add to Release List',
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: primarycolor,
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(width: 2.0, color: primarycolor),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.add,
+                          size: 15,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              String medicineName =
+                                  ''; // Variable to store the selected medicine name
+                              int quantity =
+                                  0; // Variable to store the selected quantity
 
-                        return AlertDialog(
-                          title: Text('Add to Release List'),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                Text('Enter the quantity:'),
-                                TextField(
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(5),
-                                  ],
-                                  onChanged: (value) {
-                                    quantity = int.tryParse(value) ?? 0;
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('Cancel'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                // Add the selected medicine name and quantity to the release list
-                                if (quantity > 0 &&
-                                    quantity <= batch['quantity']) {
-                                  // Add the medicine to the release list
-                                  releaseList.add({
-                                    'medicineName': batch['medicineName'],
-                                    'quantity': quantity,
-                                    'batchNumber': batchNumber,
-                                    'batchId': batch['batchId'],
-                                    'medicineId': batch['medicineId']
-                                  });
-
-                                  Navigator.of(context).pop();
-                                } else {
-                                  // Show an error message or alert
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Invalid Quantity'),
-                                        content: Text(
-                                            'Please enter a valid quantity.'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text('OK'),
-                                          ),
+                              return AlertDialog(
+                                title: Text('Add to Release List'),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Text('Enter the quantity:'),
+                                      TextField(
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          LengthLimitingTextInputFormatter(5),
                                         ],
-                                      );
+                                        onChanged: (value) {
+                                          quantity = int.tryParse(value) ?? 0;
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
                                     },
-                                  );
-                                }
-                              },
-                              child: Text('Add'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
+                                    child: Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Add the selected medicine name and quantity to the release list
+                                      if (quantity > 0 &&
+                                          quantity <= batch['quantity']) {
+                                        // Add the medicine to the release list
+                                        releaseList.add({
+                                          'medicineName': batch['medicineName'],
+                                          'quantity': quantity,
+                                          'batchNumber': batchNumber,
+                                          'batchId': batch['batchId'],
+                                          'medicineId': batch['medicineId']
+                                        });
+
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        // Show an error message or alert
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('Invalid Quantity'),
+                                              content: Text(
+                                                  'Please enter a valid quantity.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('OK'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                    child: Text('Add'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                : Container(),
           ],
         ),
       ),

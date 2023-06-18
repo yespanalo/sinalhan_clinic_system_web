@@ -296,14 +296,13 @@ class _IndividualPatientRecordFormState
       'fathers name': fatherName.text,
       "additional info": {
         "alcohol": alcoholValue,
-        "birth control": birthcontrolController.text,
-        "elderly immunizations": elderImmuController.text,
-        "pregnant immunizations": pregImmuController.text,
-        "women immunizations": womenImmuController.text,
-        "children immunizations": childImmuController.text,
-        "family diseases": diseaseListController.text,
-        "past operation and dates": operationsListController.text,
-        "past medical history": medhistoryListController.text,
+        "birth control": birthControlList,
+        "elderly immunizations": elderlyImmunizationList,
+        "pregnant immunizations": pregnantImmunizationList,
+        "women immunizations": youngWomenImmunizationList,
+        "children immunizations": childrenImmunizationList,
+        "family diseases": familyDiseasesList,
+        "past operation": pastOperationList,
         "bottle per year": bottlesController.text,
         "smoking": smokingValue,
         "packs per year": packsController.text,
@@ -321,6 +320,7 @@ class _IndividualPatientRecordFormState
         "number of abortion": abortionController.text,
         "number of living children": livingChildrenController.text,
         "pastMedicalList": pastMedicalHistoryList,
+        "menarche": MenarcheDropdownValue
       }
     });
     Fluttertoast.showToast(
@@ -503,7 +503,7 @@ class _IndividualPatientRecordFormState
                         () => _showAddItemDialog("pastOperation"),
                       ),
                       getList(
-                        "Please list past operations",
+                        "Please list family diseases",
                         familyDiseasesList,
                         () => _showAddItemDialog("family"),
                       ),

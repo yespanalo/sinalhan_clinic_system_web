@@ -1008,6 +1008,55 @@ class UpcomingVisitList extends StatelessWidget {
               ),
             ],
           ),
+          SizedBox(
+            width: 20,
+          ),
+          Tooltip(
+            message: "Cancel Appointment",
+            child: IconButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Confirm Deletion'),
+                        content: Text(
+                            'Are you sure you want to delete this appointment?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Proceed with document deletion
+                              FirebaseFirestore.instance
+                                  .collection('patients')
+                                  .doc(patientId)
+                                  .collection('appointments')
+                                  .doc(upcomingVisit['visit id'])
+                                  .delete()
+                                  .then((_) {
+                                // Document deleted successfully
+                                print('Document deleted');
+                              }).catchError((error) {
+                                // Error occurred while deleting document
+                                print('Error deleting document: $error');
+                              });
+
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            child: Text('Delete'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                icon: Icon(FontAwesomeIcons.trash, color: Colors.white)),
+          ),
         ],
       ),
     );

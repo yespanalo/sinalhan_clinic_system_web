@@ -94,7 +94,7 @@ class _AddUserState extends State<AddUser> {
     return null;
   }
 
-  void _submit() {
+  void _submit() async {
     // if there is no error text
     if (_errorText == null) {
       // notify the parent widget via the onSubmit callback
@@ -114,11 +114,17 @@ class _AddUserState extends State<AddUser> {
               _userType,
               context,
             );
+
             if (error == null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Successfully Registered!')),
               );
               Navigator.pop(context);
+              Navigator.pop(context);
+            } else if (error == 'user_already_exists') {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('User already exists!')),
+              );
               Navigator.pop(context);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -126,13 +132,6 @@ class _AddUserState extends State<AddUser> {
               );
               Navigator.pop(context);
             }
-
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => Home(),
-            //   ),
-            // );
           },
           title: 'CONFIRM',
         ),
