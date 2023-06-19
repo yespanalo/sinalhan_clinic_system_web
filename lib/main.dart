@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
         // ),
 
-        // home: IndividualPatientRecordForm(),
+        //home: IndividualPatientRecordForm(),
         home: IndividualPatientEditForm(
           uid: "8gNCQo3k5jdBHqNYSvvmMBLlCFb2",
         ));

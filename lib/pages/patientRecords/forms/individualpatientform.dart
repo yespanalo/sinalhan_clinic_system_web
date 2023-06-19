@@ -166,13 +166,13 @@ class _IndividualPatientRecordFormState
             },
           ),
           actions: [
-            FlatButton(
+            TextButton(
               child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Add'),
               onPressed: () {
                 if (itemCallBack == "family") {
