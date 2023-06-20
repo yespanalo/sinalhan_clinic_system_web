@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,258 +21,738 @@ class IndividualPatientEditForm extends StatefulWidget {
 }
 
 class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
+  FirebaseFirestore? firestore;
+  CollectionReference? patientsCollection;
+  Map<String, dynamic>? formData;
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    firestore = FirebaseFirestore.instance;
+    patientsCollection = firestore!.collection('patients');
+
+    try {
+      DocumentSnapshot snapshot =
+          await patientsCollection!.doc(widget.uid).get();
+      if (snapshot.exists) {
+        setState(() {
+          formData = snapshot.data() as Map<String, dynamic>;
+        });
+      } else {
+        // Handle case where the form doesn't exist
+        print('Form not found.');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  late String? smokingValue = formData!['additional info']['smoking'];
+  late bool packsPerYearVisibility = smokingValue == "Yes" ? true : false;
+
+  List<String> genderList = <String>['Male', 'Female'];
+  late String genderDropdownValue = formData!['gender'.toString()];
+  bool isMale = true;
+
+  List<String> CivilStatusList = <String>[
+    'Single',
+    'Married',
+    'Annuled',
+    'Widow/Widower',
+    'Separted'
+  ];
+  late String CivilStatusDropdownValue = formData!['civil status'.toString()];
+
+  List<String> EducationList = <String>[
+    'College Degree, Post Graduate',
+    'High School',
+    'Elementary',
+    'Vocational',
+    'No Schooling'
+  ];
+  late String EducationDropdownValue =
+      formData!['educational attainment'.toString()];
+
+  late List<dynamic> pastMedicalHistoryList =
+      formData!['additional info']['pastMedicalList'];
+  void addItemToPastMedicalHistory(String newItem) {
+    setState(() {
+      pastMedicalHistoryList.add(newItem);
+    });
+  }
+
+  late List<dynamic> pastOperationList =
+      formData!['additional info']['past operation'];
+  void addItemToPastOperationList(String newItem) {
+    setState(() {
+      pastOperationList.add(newItem);
+    });
+  }
+
+  late List<dynamic> familyDiseasesList =
+      formData!['additional info']['family diseases'];
+  void addItemToFamilyDiseasesListList(String newItem) {
+    setState(() {
+      familyDiseasesList.add(newItem);
+    });
+  }
+
+  late List<dynamic> childrenImmunizationList =
+      formData!['additional info']['children immunizations'];
+
+  void addItemTochildrenImmunizationList(String newItem) {
+    setState(() {
+      childrenImmunizationList.add(newItem);
+    });
+  }
+
+  late List<dynamic> youngWomenImmunizationList =
+      formData!['additional info']['women immunizations'];
+
+  void addItemToyoungWomenImmunizationList(String newItem) {
+    setState(() {
+      youngWomenImmunizationList.add(newItem);
+    });
+  }
+
+  late List<dynamic> pregnantImmunizationList =
+      formData!['additional info']['pregnant immunizations'];
+
+  void addItemTopregnantImmunizationList(String newItem) {
+    setState(() {
+      pregnantImmunizationList.add(newItem);
+    });
+  }
+
+  late List<dynamic> elderlyImmunizationList =
+      formData!['additional info']['elderly immunizations'];
+
+  void addItemToelderlyImmunizationList(String newItem) {
+    setState(() {
+      elderlyImmunizationList.add(newItem);
+    });
+  }
+
+  late List<dynamic> birthControlList =
+      formData!['additional info']['birth control'];
+  void addItemToBirthControlList(String newItem) {
+    setState(() {
+      birthControlList.add(newItem);
+    });
+  }
+
+  void _showAddItemDialog(String itemCallBack) {
+    String newItem = '';
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Please list any diseases that run in the family'),
+          content: TextField(
+            onChanged: (value) {
+              newItem = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (itemCallBack == "family") {
+                  addItemToFamilyDiseasesListList(newItem);
+                } else if (itemCallBack == "pastOperation") {
+                  addItemToPastOperationList(newItem);
+                } else if (itemCallBack == "pastMedicalHistory") {
+                  addItemToPastMedicalHistory(newItem);
+                } else if (itemCallBack == "childrenImmunizations") {
+                  addItemTochildrenImmunizationList(newItem);
+                } else if (itemCallBack == "youngWomenImmunization") {
+                  addItemToyoungWomenImmunizationList(newItem);
+                } else if (itemCallBack == "pregnantImmunization") {
+                  addItemTopregnantImmunizationList(newItem);
+                } else if (itemCallBack == "birthControl") {
+                  addItemToBirthControlList(newItem);
+                } else {
+                  addItemToelderlyImmunizationList(newItem);
+                }
+
+                // addItemCallback(newItem);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference patientsCollection = firestore.collection('patients');
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: patientsCollection.doc(widget.uid).get(),
-      builder:
-          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Align(
-            alignment: Alignment.center,
-            child: Container(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+    if (formData != null) {
+      TextEditingController firstname = new TextEditingController()
+        ..text = formData!['first name'];
+      TextEditingController middlename = new TextEditingController()
+        ..text = formData!['middle name'];
+      TextEditingController lastname = new TextEditingController()
+        ..text = formData!['last name'];
+      TextEditingController birthdateController = new TextEditingController()
+        ..text = formData!['birthdate'];
+      TextEditingController contactNumber = new TextEditingController()
+        ..text = formData!['contact number'];
+      TextEditingController streetController = new TextEditingController()
+        ..text = formData!['address'];
+      TextEditingController cityController = new TextEditingController()
+        ..text = formData!['address'];
+      TextEditingController provinceController = new TextEditingController()
+        ..text = formData!['address'];
+      TextEditingController emailController = new TextEditingController()
+        ..text = formData!['email'];
+      TextEditingController religionController = new TextEditingController()
+        ..text = formData!['religion'];
+      TextEditingController occupationController = new TextEditingController()
+        ..text = formData!['occupation'];
+      TextEditingController motherName = new TextEditingController()
+        ..text = formData!['mothers name'];
+      TextEditingController fatherName = new TextEditingController()
+        ..text = formData!['fathers name'];
+      TextEditingController packsController = new TextEditingController()
+        ..text = formData!['additional info']['packs per year'];
 
-        if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        }
+      // TextEditingController lastMensController = new TextEditingController()
+      //   ..text = formData['last mens'];
 
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          // Handle case where the form doesn't exist
-          return Text('Form not found.');
-        }
+      var _text;
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                      ),
+                      padding: EdgeInsets.all(15),
+                      width: MediaQuery.of(context).size.width / 1.7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                "PHILIPPINE HEALTH INSURANCE CORPORATION",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600, fontSize: 13),
+                              ),
+                              Text(
+                                "SANTA ROSA CITY HEALTH OFFICE 1",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                              Text(
+                                "INDIVIDUAL HEALTH PROFILE",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600, fontSize: 13),
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Divider(),
+                            ],
+                          ),
+                          Header(
+                            text: "General Patient Information",
+                          ),
 
-        // Form data exists, populate the form fields with the retrieved values
-        var formData = snapshot.data!.data() as Map<String, dynamic>;
-
-        TextEditingController firstname = new TextEditingController()
-          ..text = formData['first name'];
-        TextEditingController middlename = new TextEditingController()
-          ..text = formData['middle name'];
-        TextEditingController lastname = new TextEditingController()
-          ..text = formData['last name'];
-        TextEditingController birthdateController = new TextEditingController()
-          ..text = formData['birthdate'];
-        TextEditingController contactNumber = new TextEditingController()
-          ..text = formData['contact number'];
-        TextEditingController streetController = new TextEditingController()
-          ..text = formData['address'];
-        TextEditingController cityController = new TextEditingController()
-          ..text = formData['address'];
-        TextEditingController provinceController = new TextEditingController()
-          ..text = formData['address'];
-        TextEditingController emailController = new TextEditingController()
-          ..text = formData['email'];
-        TextEditingController religionController = new TextEditingController()
-          ..text = formData['religion'];
-        TextEditingController occupationController = new TextEditingController()
-          ..text = formData['occupation'];
-        TextEditingController motherName = new TextEditingController()
-          ..text = formData['mothers name'];
-        TextEditingController fatherName = new TextEditingController()
-          ..text = formData['fathers name'];
-
-        // TextEditingController lastMensController = new TextEditingController()
-        //   ..text = formData['last mens'];
-
-        var _text;
-        return Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.white,
-                        ),
-                        padding: EdgeInsets.all(15),
-                        width: MediaQuery.of(context).size.width / 1.7,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                          NameWidget(firstname, middlename, lastname),
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: 10, bottom: 10, left: 30, right: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(
-                                  height: 20,
-                                ),
                                 Text(
-                                  "PHILIPPINE HEALTH INSURANCE CORPORATION",
+                                  "Patient Birthdate",
                                   style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13),
-                                ),
-                                Text(
-                                  "SANTA ROSA CITY HEALTH OFFICE 1",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18),
-                                ),
-                                Text(
-                                  "INDIVIDUAL HEALTH PROFILE",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16),
                                 ),
                                 SizedBox(
-                                  height: 20,
+                                  height: 10,
                                 ),
-                                Divider(),
+                                Container(
+                                  height: 40,
+                                  width: 330,
+                                  child: TextField(
+                                    readOnly: true,
+                                    onChanged: (text) => setState(() => _text),
+                                    controller: birthdateController,
+                                    decoration: InputDecoration(
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              width: 0.5, color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              width: 0.5, color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        )),
+                                    onTap: () async {
+                                      DateTime date = DateTime(1900);
+                                      FocusScope.of(context)
+                                          .requestFocus(new FocusNode());
+                                      date = (await showDatePicker(
+                                          context: context,
+                                          initialDate: DateTime(2021),
+                                          firstDate: DateTime(1900),
+                                          lastDate: DateTime(2100)))!;
+                                      birthdateController.text =
+                                          DateFormat('yyyy-MM-dd').format(date);
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
-                            Header(
-                              text: "General Patient Information",
-                            ),
-                            Header(text: "Sign up with email"),
-                            email(
-                              emailController,
-                            ),
-                            NameWidget(firstname, middlename, lastname),
-                            Container(
+                          ),
+                          patientGender(),
+                          Address(streetController, cityController,
+                              provinceController),
+                          phoneNumber(contactNumber),
+                          civilStatus(),
+                          religion(religionController),
+                          occupation(occupationController),
+                          educationalAttainment(),
+                          mothersName(motherName),
+                          fathersName(fatherName),
+                          Header(
+                            text: "Patient Medical History",
+                          ),
+                          getList(
+                            "List past medical history",
+                            pastMedicalHistoryList,
+                            () => _showAddItemDialog("pastMedicalHistory"),
+                          ),
+                          getList(
+                            "Please list past operations",
+                            pastOperationList,
+                            () => _showAddItemDialog("pastOperation"),
+                          ),
+                          getList(
+                            "Please list family diseases",
+                            familyDiseasesList,
+                            () => _showAddItemDialog("family"),
+                          ),
+                          Header(
+                            text: "Healthy & Unhealthy Habits",
+                          ),
+                          SmokingRadio(),
+                          Visibility(
+                            visible: packsPerYearVisibility,
+                            child: Container(
+                              height: 40,
+                              width: double.infinity,
+                              padding: EdgeInsets.only(left: 8, right: 8),
                               margin: EdgeInsets.only(
-                                  top: 10, bottom: 10, left: 30, right: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Patient Birthdate",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 16),
+                                  left: 30, right: 20, bottom: 10),
+                              child: TextField(
+                                controller: packsController,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      "Please enter how many packs per year",
+                                  contentPadding: EdgeInsets.only(
+                                      left: 5, top: 2, bottom: 2),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        width: 0.5, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  SizedBox(
-                                    height: 10,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        width: 0.5, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  Container(
-                                    height: 40,
-                                    width: 330,
-                                    child: TextField(
-                                      readOnly: true,
-                                      onChanged: (text) =>
-                                          setState(() => _text),
-                                      controller: birthdateController,
-                                      decoration: InputDecoration(
-                                          enabledBorder: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 0.5, color: Colors.grey),
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 0.5, color: Colors.grey),
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                          )),
-                                      onTap: () async {
-                                        DateTime date = DateTime(1900);
-                                        FocusScope.of(context)
-                                            .requestFocus(new FocusNode());
-                                        date = (await showDatePicker(
-                                            context: context,
-                                            initialDate: DateTime(2021),
-                                            firstDate: DateTime(1900),
-                                            lastDate: DateTime(2100)))!;
-                                        birthdateController.text =
-                                            DateFormat('yyyy-MM-dd')
-                                                .format(date);
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                            Address(streetController, cityController,
-                                provinceController),
-                            phoneNumber(contactNumber),
-                            religion(religionController),
-                            occupation(occupationController),
-                            mothersName(motherName),
-                            fathersName(fatherName),
-                            Row(
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(
-                                      top: 20, bottom: 10, left: 20, right: 20),
-                                  width: 400,
-                                  height: 50,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      addIndividualPatient();
-                                      Navigator.pop(context);
-                                    },
-                                    style: ButtonStyle(
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(
+                                    top: 20, bottom: 10, left: 20, right: 20),
+                                width: 400,
+                                height: 50,
+                                child: TextButton(
+                                  onPressed: () {
+                                    addIndividualPatient();
+                                    Navigator.pop(context);
+                                  },
+                                  style: ButtonStyle(
+                                    shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              secondaryaccent),
                                     ),
-                                    child: Text(
-                                      "Add",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            secondaryaccent),
+                                  ),
+                                  child: Text(
+                                    "Add",
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ),
-                                Container(
-                                  margin: EdgeInsets.only(
-                                      top: 20, bottom: 10, left: 20, right: 20),
-                                  width: 400,
-                                  height: 50,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    style: ButtonStyle(
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(
+                                    top: 20, bottom: 10, left: 20, right: 20),
+                                width: 400,
+                                height: 50,
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  style: ButtonStyle(
+                                    shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
                                       ),
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              Colors.grey),
                                     ),
-                                    child: Text(
-                                      "Cancel",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            Colors.grey),
+                                  ),
+                                  child: Text(
+                                    "Cancel",
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
 
-                            // LastMens(lastMensController),
-                          ],
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
+                          // LastMens(lastMensController),
+                        ],
+                      ),
+                    )
+                  ],
+                )
+              ],
             ),
           ),
-        );
-      },
+        ),
+      );
+    } else {
+      return CircularProgressIndicator();
+    }
+  }
+
+  Container SmokingRadio() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Do you smoke?",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 75,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Radio(
+                    value: "No",
+                    groupValue: smokingValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        smokingValue = value;
+                        packsPerYearVisibility = false;
+                      });
+                    },
+                  ),
+                  Text("No")
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: "Yes",
+                    groupValue: smokingValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        smokingValue = value;
+                        packsPerYearVisibility = true;
+                      });
+                    },
+                  ),
+                  Text("Yes")
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Column getList(header, list, addFunction) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+          child: Text(
+            "$header",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+        ),
+        Container(
+          width: MediaQuery.of(context).size.width / 3.9,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              return Container(
+                margin:
+                    EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(5)),
+                  border: Border.all(
+                    color: Colors.blue,
+                    style: BorderStyle.solid,
+                    width: 0.50,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: Text(list[index]),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: secondaryaccent,
+                      ),
+                      onPressed: () {
+                        // Handle delete button pressed for the item at index
+                        // Remove the item from the list or perform any other actions
+                        // Here's an example of removing the item:
+                        setState(() {
+                          list.removeAt(index);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+          width: MediaQuery.of(context).size.width / 4.5,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(5)),
+            border: Border.all(
+              color: Colors.blue,
+              style: BorderStyle.solid,
+              width: 0.50,
+            ),
+          ),
+          child: TextButton(
+            onPressed: addFunction,
+            child: Icon(Icons.add),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Container educationalAttainment() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Highest Completed Educational Attainment",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 40,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5.0),
+            border: Border.all(
+                color: Colors.grey, style: BorderStyle.solid, width: 0.50),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: EducationDropdownValue,
+              icon: const Icon(Icons.arrow_downward),
+              elevation: 16,
+              style: const TextStyle(
+                color: Colors.black,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              onChanged: (String? value) {
+                setState(() {
+                  EducationDropdownValue = value!;
+                  // checkSex();
+                });
+              },
+              items:
+                  EducationList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Container civilStatus() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Civil Status",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 40,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5.0),
+            border: Border.all(
+                color: Colors.grey, style: BorderStyle.solid, width: 0.50),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: CivilStatusDropdownValue,
+              icon: const Icon(Icons.arrow_downward),
+              elevation: 16,
+              style: const TextStyle(
+                color: Colors.black,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              onChanged: (String? value) {
+                setState(() {
+                  CivilStatusDropdownValue = value!;
+                  // checkSex();
+                });
+              },
+              items:
+                  CivilStatusList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Container patientGender() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Patient Gender",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 40,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5.0),
+            border: Border.all(
+                color: Colors.grey, style: BorderStyle.solid, width: 0.50),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: genderDropdownValue,
+              icon: const Icon(Icons.arrow_downward),
+              elevation: 16,
+              style: const TextStyle(
+                color: Colors.black,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              onChanged: (String? value) {
+                setState(() {
+                  genderDropdownValue = value!;
+                  if (genderDropdownValue == 'Male') {
+                    isMale = true;
+                  } else {
+                    isMale = false;
+                  }
+
+                  // checkSex();
+                });
+              },
+              items: genderList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -345,90 +827,6 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
       ),
     );
   }
-  // Container LastMens(TextEditingController lastMensController) {
-  //   return Container(
-  //     margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
-  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-  //       Text(
-  //         "Last Menstruation Period",
-  //         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-  //       ),
-  //       SizedBox(
-  //         height: 10,
-  //       ),
-  //       Container(
-  //         height: 40,
-  //         width: 330,
-  //         child: TextField(
-  //           readOnly: true,
-  //           controller: lastMensController,
-  //           decoration: InputDecoration(
-  //               hintText: "Please enter last menstruation period",
-  //               enabledBorder: OutlineInputBorder(
-  //                 borderSide: const BorderSide(width: 0.5, color: Colors.grey),
-  //                 borderRadius: BorderRadius.circular(5),
-  //               ),
-  //               focusedBorder: OutlineInputBorder(
-  //                 borderSide: const BorderSide(width: 0.5, color: Colors.grey),
-  //                 borderRadius: BorderRadius.circular(5),
-  //               )),
-  //           onTap: () async {
-  //             DateTime date = DateTime(1900);
-  //             FocusScope.of(context).requestFocus(new FocusNode());
-  //             date = (await showDatePicker(
-  //                 context: context,
-  //                 initialDate: DateTime(2021),
-  //                 firstDate: DateTime(1900),
-  //                 lastDate: DateTime(2100)))!;
-  //             lastMensController.text = DateFormat('yyy-MM-dd').format(date);
-  //           },
-  //         ),
-  //       ),
-  //     ]),
-  //   );
-  // }
-
-  // Container patiendMedicalHistory(
-  //     TextEditingController controller, String heading) {
-  //   return Container(
-  //     margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Text(
-  //           "$heading",
-  //           style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-  //         ),
-  //         SizedBox(
-  //           height: 10,
-  //         ),
-  //         Container(
-  //           height: 100,
-  //           width: double.infinity,
-  //           child: TextField(
-  //             controller: controller,
-  //             textAlignVertical: TextAlignVertical.top,
-  //             expands: true,
-  //             keyboardType: TextInputType.multiline,
-  //             maxLines: null,
-  //             decoration: InputDecoration(
-  //                 contentPadding: EdgeInsets.only(left: 5, top: 2, bottom: 2),
-  //                 enabledBorder: OutlineInputBorder(
-  //                   borderSide:
-  //                       const BorderSide(width: 0.5, color: Colors.grey),
-  //                   borderRadius: BorderRadius.circular(5),
-  //                 ),
-  //                 focusedBorder: OutlineInputBorder(
-  //                   borderSide:
-  //                       const BorderSide(width: 0.5, color: Colors.grey),
-  //                   borderRadius: BorderRadius.circular(5),
-  //                 )),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Container occupation(TextEditingController occupationController) {
     return Container(
@@ -628,81 +1026,6 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                         borderRadius: BorderRadius.circular(5),
                       )),
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                "Street Address",
-                style: TextStyle(fontSize: 11),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 330,
-                        height: 40,
-                        child: TextField(
-                          controller: cityController,
-                          decoration: InputDecoration(
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    width: 0.5, color: Colors.grey),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    width: 0.5, color: Colors.grey),
-                                borderRadius: BorderRadius.circular(5),
-                              )),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "City",
-                        style: TextStyle(fontSize: 11),
-                      )
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 330,
-                        height: 40,
-                        child: TextField(
-                          controller: provinceController,
-                          decoration: InputDecoration(
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    width: 0.5, color: Colors.grey),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    width: 0.5, color: Colors.grey),
-                                borderRadius: BorderRadius.circular(5),
-                              )),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Province",
-                        style: TextStyle(fontSize: 11),
-                      )
-                    ],
-                  ),
-                ],
               ),
             ],
           ),
