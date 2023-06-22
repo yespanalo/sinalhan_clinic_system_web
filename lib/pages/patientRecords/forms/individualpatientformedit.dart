@@ -53,9 +53,20 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
   late String? smokingValue = formData!['additional info']['smoking'];
   late bool packsPerYearVisibility = smokingValue == "Yes" ? true : false;
 
+  late String? alcoholValue = formData!['additional info']['alcohol'];
+  late bool bottlePerYearVisibility = alcoholValue == "Yes" ? true : false;
+
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = formData!['gender'.toString()];
   bool isMale = true;
+
+  late String? drugsValue = formData!['additional info']['illicit drugs'];
+  late String? menopauseValue = formData!['additional info']['menopause'];
+  late String? familyplanningValue =
+      formData!['additional info']['family planning'];
+
+  // List<String> MenarcheList = <String>['True', 'False'];
+  // late String MenarcheDropdownValue = formData!['menarche'.toString()];
 
   List<String> CivilStatusList = <String>[
     'Single',
@@ -228,10 +239,31 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
         ..text = formData!['fathers name'];
       TextEditingController packsController = new TextEditingController()
         ..text = formData!['additional info']['packs per year'];
-
-      // TextEditingController lastMensController = new TextEditingController()
-      //   ..text = formData['last mens'];
-
+      TextEditingController bottlesController = new TextEditingController()
+        ..text = formData!['additional info']['bottle per year'];
+      TextEditingController lastMensController = new TextEditingController()
+        ..text = formData!['additional info']['last mens'];
+      TextEditingController periodDurationController =
+          new TextEditingController()
+            ..text = formData!['additional info']['period duration'];
+      TextEditingController padsController = new TextEditingController()
+        ..text = formData!['additional info']['pads per day'];
+      TextEditingController intervalCycleController =
+          new TextEditingController()
+            ..text = formData!['additional info']['interval cycle'];
+      TextEditingController onsetController = new TextEditingController()
+        ..text = formData!['additional info']['onset of sexual intercourse'];
+      TextEditingController gravidaController = new TextEditingController()
+        ..text = formData!['additional info']['gravida'];
+      TextEditingController parityController = new TextEditingController()
+        ..text = formData!['additional info']['parity'];
+      TextEditingController prematureController = new TextEditingController()
+        ..text = formData!['additional info']['number of premature'];
+      TextEditingController abortionController = new TextEditingController()
+        ..text = formData!['additional info']['number of abortion'];
+      TextEditingController livingChildrenController =
+          new TextEditingController()
+            ..text = formData!['additional info']['number of living children'];
       var _text;
       return Scaffold(
         body: SafeArea(
@@ -396,6 +428,102 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                               ),
                             ),
                           ),
+                          alcoholRadio(),
+                          Visibility(
+                            visible: bottlePerYearVisibility,
+                            child: Container(
+                              height: 40,
+                              width: double.infinity,
+                              padding: EdgeInsets.only(left: 8, right: 8),
+                              margin: EdgeInsets.only(
+                                  left: 30, right: 20, bottom: 10),
+                              child: TextField(
+                                controller: bottlesController,
+                                decoration: InputDecoration(
+                                  hintText: "Please enter how bottles per year",
+                                  contentPadding: EdgeInsets.only(
+                                      left: 5, top: 2, bottom: 2),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        width: 0.5, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: const BorderSide(
+                                        width: 0.5, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          DrugsRadio(),
+                          Header(text: "Immunizations"),
+                          getList(
+                              "Please list if there are children immunizations received",
+                              childrenImmunizationList,
+                              () =>
+                                  _showAddItemDialog("childrenImmunizations")),
+                          Visibility(
+                            visible: !isMale,
+                            child: getList(
+                              "Please list if there are young women immunizations received",
+                              youngWomenImmunizationList,
+                              () =>
+                                  _showAddItemDialog("youngWomenImmunization"),
+                            ),
+                          ),
+                          Visibility(
+                            visible: !isMale,
+                            child: getList(
+                              "Please list if there are immunizations for pregnant received",
+                              pregnantImmunizationList,
+                              () => _showAddItemDialog("pregnantImmunization"),
+                            ),
+                          ),
+                          getList(
+                            "Please list if there are elderly immunizations received",
+                            elderlyImmunizationList,
+                            () => _showAddItemDialog("elderlyImmunizations"),
+                          ),
+
+                          Visibility(
+                            visible: !isMale,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Header(text: "Menstrual History"),
+                                // Menarche(),
+                                LastMens(lastMensController),
+                                periodDuration(periodDurationController),
+                                padsPerDay(padsController),
+                                IntervalCycle(intervalCycleController),
+                                OnsetofIntercourse(onsetController),
+                                getList(
+                                  "Please list birth control method if there is any",
+                                  birthControlList,
+                                  () => _showAddItemDialog("birthControl"),
+                                ),
+                                Menopause(),
+                              ],
+                            ),
+                          ),
+                          Visibility(
+                            visible: !isMale,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Header(text: "Pregnancy History"),
+                                Gravida(gravidaController),
+                                Parity(parityController),
+                                Premature(prematureController),
+                                Abortion(abortionController),
+                                LivingChildren(livingChildrenController),
+                                FamilyPlanning(),
+                              ],
+                            ),
+                          ),
+
                           Row(
                             children: [
                               Container(
@@ -468,8 +596,511 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
         ),
       );
     } else {
-      return CircularProgressIndicator();
+      return SizedBox(
+        width: 50,
+        height: 50,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [CircularProgressIndicator()],
+        ),
+      );
     }
+  }
+
+  // Container Menarche() {
+  //   return Container(
+  //     margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+  //     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  //       Text(
+  //         "Menarche",
+  //         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+  //       ),
+  //       SizedBox(
+  //         height: 10,
+  //       ),
+  //       Container(
+  //         height: 40,
+  //         width: 330,
+  //         padding: EdgeInsets.only(left: 8, right: 8),
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(5.0),
+  //           border: Border.all(
+  //               color: Colors.grey, style: BorderStyle.solid, width: 0.50),
+  //         ),
+  //         child: DropdownButtonHideUnderline(
+  //           child: DropdownButton<String>(
+  //             value: MenarcheDropdownValue,
+  //             icon: const Icon(Icons.arrow_downward),
+  //             elevation: 16,
+  //             style: const TextStyle(
+  //               color: Colors.black,
+  //             ),
+  //             borderRadius: BorderRadius.circular(8),
+  //             onChanged: (String? value) {
+  //               setState(() {
+  //                 MenarcheDropdownValue = value!;
+  //                 // checkSex();
+  //               });
+  //             },
+  //             items: MenarcheList.map<DropdownMenuItem<String>>((String value) {
+  //               return DropdownMenuItem<String>(
+  //                 value: value,
+  //                 child: Text(value),
+  //               );
+  //             }).toList(),
+  //           ),
+  //         ),
+  //       ),
+  //     ]),
+  //   );
+  // }
+  Container FamilyPlanning() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Access to  planning?",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 75,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Radio(
+                    value: "No",
+                    groupValue: familyplanningValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        familyplanningValue = value;
+                      });
+                    },
+                  ),
+                  Text("No")
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: "Yes",
+                    groupValue: familyplanningValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        familyplanningValue = value;
+                      });
+                    },
+                  ),
+                  Text("Yes")
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Container LivingChildren(TextEditingController livingChildrenController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Number of Living Children",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: livingChildrenController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,3",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the number of living children",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container Abortion(TextEditingController abortionController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Number of Abortion",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: abortionController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,0",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the number of abortion",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container Premature(TextEditingController prematureController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Number of Premature",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: prematureController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,0",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the number of premature",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container Parity(TextEditingController parityController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Parity",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: parityController,
+
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,3",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the number of delivery",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container Gravida(TextEditingController gravidaController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Gravida",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: gravidaController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,3",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the number of pregnancy",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container Menopause() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Menopause?",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 75,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Radio(
+                    value: "No",
+                    groupValue: menopauseValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        menopauseValue = value;
+                      });
+                    },
+                  ),
+                  Text("No")
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: "Yes",
+                    groupValue: menopauseValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        menopauseValue = value;
+                      });
+                    },
+                  ),
+                  Text("Yes")
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Container DrugsRadio() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Illicit Drugs?",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 75,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Radio(
+                    value: "No",
+                    groupValue: drugsValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        drugsValue = value;
+                      });
+                    },
+                  ),
+                  Text("No")
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: "Yes",
+                    groupValue: drugsValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        drugsValue = value;
+                      });
+                    },
+                  ),
+                  Text("Yes")
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Container alcoholRadio() {
+    return Container(
+      margin: EdgeInsets.only(top: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Do you drink alcohol?",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 75,
+          width: 330,
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Radio(
+                    value: "No",
+                    groupValue: alcoholValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        alcoholValue = value;
+                        bottlePerYearVisibility = false;
+                      });
+                    },
+                  ),
+                  Text("No")
+                ],
+              ),
+              Row(
+                children: [
+                  Radio(
+                    value: "Yes",
+                    groupValue: alcoholValue,
+                    onChanged: (String? value) {
+                      setState(() {
+                        alcoholValue = value;
+                        bottlePerYearVisibility = true;
+                      });
+                    },
+                  ),
+                  Text("Yes")
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
   }
 
   Container SmokingRadio() {
@@ -756,6 +1387,194 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
     );
   }
 
+  Container OnsetofIntercourse(TextEditingController onsetController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Onset of Sexual Intercourse",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: onsetController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,18",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter the age of first intercourse",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container IntervalCycle(TextEditingController intervalCycleController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Interval Cycle",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: intervalCycleController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,28",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter how many days is your cycle",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container padsPerDay(TextEditingController padsController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Number of pads/day",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: padsController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,2",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter pads per day during menstruation",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container periodDuration(TextEditingController periodDurationController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Period Duration",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: periodDurationController,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ], //
+              decoration: InputDecoration(
+                  hintText: "e.g.,7",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Enter how many days your period last",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
   Container fathersName(TextEditingController fatherName) {
     return Container(
       margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
@@ -1031,6 +1850,49 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
           ),
         ],
       ),
+    );
+  }
+
+  Container LastMens(TextEditingController lastMensController) {
+    return Container(
+      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          "Last Menstruation Period",
+          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 40,
+          width: 330,
+          child: TextField(
+            readOnly: true,
+            controller: lastMensController,
+            decoration: InputDecoration(
+                hintText: "Please enter last menstruation period",
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(width: 0.5, color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(width: 0.5, color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5),
+                )),
+            onTap: () async {
+              DateTime date = DateTime(1900);
+              FocusScope.of(context).requestFocus(new FocusNode());
+              date = (await showDatePicker(
+                  context: context,
+                  initialDate: DateTime(2021),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime(2100)))!;
+              lastMensController.text = DateFormat('yyy-MM-dd').format(date);
+            },
+          ),
+        ),
+      ]),
     );
   }
 

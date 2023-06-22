@@ -594,7 +594,7 @@ class _IndividualPatientRecordFormState
                         ),
                       ),
                       getList(
-                        "Please list if there are children immunizations received",
+                        "Please list if there are elderly immunizations received",
                         elderlyImmunizationList,
                         () => _showAddItemDialog("elderlyImmunizations"),
                       ),
