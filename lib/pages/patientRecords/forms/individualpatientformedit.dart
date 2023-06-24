@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 import '../../../constants copy.dart';
@@ -29,6 +30,8 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
     super.initState();
     fetchData();
   }
+
+  late String uid = widget.uid;
 
   Future<void> fetchData() async {
     firestore = FirebaseFirestore.instance;
@@ -265,6 +268,72 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
           new TextEditingController()
             ..text = formData!['additional info']['number of living children'];
       var _text;
+      void updateIndividualPatient(String uid) async {
+        await FirebaseFirestore.instance
+            .collection('patients')
+            .doc(uid)
+            .update({
+          'type': "Patient",
+          'first name': firstname.text,
+          'last name': lastname.text,
+          'middle name': middlename.text,
+          'category': "Individual Patient Record",
+          'email': emailController.text,
+          'contact number': contactNumber.text,
+          'address': streetController.text +
+              ", " +
+              cityController.text +
+              ", " +
+              provinceController.text,
+          'gender': genderDropdownValue,
+          'birthdate': birthdateController.text,
+          'civil status': CivilStatusDropdownValue,
+          'educational attainment': EducationDropdownValue,
+          'religion': religionController.text,
+          'occupation': occupationController.text,
+          'mothers name': motherName.text,
+          'fathers name': fatherName.text,
+          "additional info": {
+            "alcohol": alcoholValue,
+            "birth control": birthControlList,
+            "elderly immunizations": elderlyImmunizationList,
+            "pregnant immunizations": pregnantImmunizationList,
+            "women immunizations": youngWomenImmunizationList,
+            "children immunizations": childrenImmunizationList,
+            "family diseases": familyDiseasesList,
+            "past operation": pastOperationList,
+            "bottle per year": bottlesController.text,
+            "smoking": smokingValue,
+            "packs per year": packsController.text,
+            "illicit drugs": drugsValue,
+            "menopause": menopauseValue,
+            "family planning": familyplanningValue,
+            "last mens": lastMensController.text,
+            "period duration": periodDurationController.text,
+            "pads per day": padsController.text,
+            "interval cycle": intervalCycleController.text,
+            "onset of sexual intercourse": onsetController.text,
+            "gravida": gravidaController.text,
+            "parity": parityController.text,
+            "number of premature": prematureController.text,
+            "number of abortion": abortionController.text,
+            "number of living children": livingChildrenController.text,
+            "pastMedicalList": pastMedicalHistoryList,
+            // "menarche": MenarcheDropdownValue
+          }
+        }).then((value) {
+          Fluttertoast.showToast(
+              msg: "Success!",
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 2,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        }).catchError((error) {
+          print("Failed to update document: $error");
+        });
+      }
+
       return Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
@@ -529,11 +598,11 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                               Container(
                                 margin: EdgeInsets.only(
                                     top: 20, bottom: 10, left: 20, right: 20),
-                                width: 400,
+                                width: 390,
                                 height: 50,
                                 child: TextButton(
                                   onPressed: () {
-                                    addIndividualPatient();
+                                    updateIndividualPatient(widget.uid);
                                     Navigator.pop(context);
                                   },
                                   style: ButtonStyle(
@@ -549,7 +618,7 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                                             secondaryaccent),
                                   ),
                                   child: Text(
-                                    "Add",
+                                    "Update",
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
@@ -557,7 +626,7 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                               Container(
                                 margin: EdgeInsets.only(
                                     top: 20, bottom: 10, left: 20, right: 20),
-                                width: 400,
+                                width: 390,
                                 height: 50,
                                 child: TextButton(
                                   onPressed: () {

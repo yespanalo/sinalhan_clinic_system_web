@@ -24,21 +24,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
 
-        // home: LoginPage(),
+      home: LoginPage(),
 
-        // home: PatientProfiel(
-        //   uid: 'IPR-f6bjmqLHhHppEAKzyFsL',
-        // ),
-
-        //home: IndividualPatientRecordForm(),
-        home: IndividualPatientEditForm(
-          uid: "8gNCQo3k5jdBHqNYSvvmMBLlCFb2",
-        ));
+      //home: IndividualPatientRecordForm(),
+      // home: IndividualPatientEditForm(
+      //   uid: "8gNCQo3k5jdBHqNYSvvmMBLlCFb2",
+      // )
+    );
   }
 }

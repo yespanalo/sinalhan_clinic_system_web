@@ -15,6 +15,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sweetsheet/sweetsheet.dart';
 import '../../constants.dart';
 import '../login/login.dart';
+import '../pages/patientRecords/forms/individualpatientformedit.dart';
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({required this.uid, Key? key}) : super(key: key);
@@ -242,7 +243,15 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                   ),
                                   Spacer(),
                                   IconButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  IndividualPatientEditForm(
+                                                      uid: widget.uid)),
+                                        );
+                                      },
                                       icon: Icon(
                                         FontAwesomeIcons.edit,
                                         color: secondaryaccent,

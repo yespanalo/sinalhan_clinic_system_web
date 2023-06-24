@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:sinalhan_clinic_system_web/categorySelection.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/function/authFunctions.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
@@ -243,6 +245,46 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ],
                       ),
+                      medsizedbox,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 500,
+                            height: 50,
+                            child: TextButton(
+                                style: ButtonStyle(
+                                  padding:
+                                      MaterialStateProperty.all<EdgeInsets>(
+                                          const EdgeInsets.all(15)),
+                                  // foregroundColor:
+                                  //     MaterialStateProperty.all<Color>(Colors.red),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          primarycolor),
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      side:
+                                          const BorderSide(color: primarycolor),
+                                    ),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => categorySelection(),
+                                    ),
+                                  );
+                                },
+                                child: const Text("Sign up",
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.white))),
+                          )
+                        ],
+                      )
                       // TextButton(
                       //   onPressed: () {
                       //     startTimer();

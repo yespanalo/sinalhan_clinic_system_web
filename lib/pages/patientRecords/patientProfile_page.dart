@@ -10,6 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientformedit.dart';
 import '../../constants.dart';
 import 'dart:io';
 import 'package:image_picker_for_web/image_picker_for_web.dart';
@@ -618,7 +619,15 @@ class _PatientProfielState extends State<PatientProfiel> {
                                   ),
                                   Spacer(),
                                   IconButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  IndividualPatientEditForm(
+                                                      uid: widget.uid)),
+                                        );
+                                      },
                                       icon: Icon(
                                         FontAwesomeIcons.edit,
                                         color: secondaryaccent,
