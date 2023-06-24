@@ -58,7 +58,7 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
 
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = formData!['gender'.toString()];
-  bool isMale = true;
+  late bool isMale = genderDropdownValue == "Male" ? true : false;
 
   late String? drugsValue = formData!['additional info']['illicit drugs'];
   late String? menopauseValue = formData!['additional info']['menopause'];
