@@ -16,14 +16,14 @@ import 'package:image_picker_for_web/image_picker_for_web.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
-class PreNatalRecordForm extends StatefulWidget {
-  const PreNatalRecordForm({Key? key}) : super(key: key);
+class WellBabyRecordForm extends StatefulWidget {
+  const WellBabyRecordForm({Key? key}) : super(key: key);
 
   @override
-  State<PreNatalRecordForm> createState() => _PreNatalRecordFormState();
+  State<WellBabyRecordForm> createState() => _WellBabyRecordFormState();
 }
 
-class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
+class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
   TextEditingController firstName = new TextEditingController();
   TextEditingController middleName = new TextEditingController();
   TextEditingController lastName = new TextEditingController();
@@ -141,7 +141,7 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                                   fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                             Text(
-                              "PRE NATAL FORM",
+                              "WELL BABY FORM",
                               style: TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 13),
                             ),
@@ -153,6 +153,42 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                         ),
                         email(
                           emailController: emailController,
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(
+                              top: 10, bottom: 10, left: 30, right: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Enter Password",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500, fontSize: 16),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                height: 40,
+                                width: 330,
+                                child: TextField(
+                                  obscureText: true,
+                                  controller: passwordController,
+                                  decoration: InputDecoration(
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            width: 0.5, color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            width: 0.5, color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(5),
+                                      )),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         Header(
                           text: "General Patient Information",

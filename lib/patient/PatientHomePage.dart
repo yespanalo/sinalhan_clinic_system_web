@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,10 +13,15 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pdf/pdf.dart';
 import 'package:sweetsheet/sweetsheet.dart';
 import '../../constants.dart';
 import '../login/login.dart';
 import '../pages/patientRecords/forms/individualpatientformedit.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:flutter/services.dart' as flutterServices;
+import 'dart:html' as html;
 
 class PatientHomePage extends StatefulWidget {
   const PatientHomePage({required this.uid, Key? key}) : super(key: key);
@@ -46,6 +52,355 @@ class _PatientHomePageState extends State<PatientHomePage> {
     super.initState();
     _userDataFuture =
         FirebaseFirestore.instance.collection('patients').doc(widget.uid).get();
+  }
+
+  String _getFormattedDate() {
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('MMMM d, yyyy, hh:mm a');
+    return formatter.format(now);
+  }
+
+  Future<pdfWidgets.Widget> addImage(
+      pdfWidgets.Document pdf, String filename) async {
+    final imageByteData = await rootBundle.load('$filename');
+    final imageUint8List = imageByteData.buffer
+        .asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+
+    final image = pdfWidgets.MemoryImage(imageUint8List);
+
+    return pdfWidgets.Center(
+      child: pdfWidgets.Image(image),
+    );
+  }
+
+  pw.Row pdfRow(Map<String, dynamic> additionalInfo, String title,
+      String condition, String value) {
+    return pw.Row(
+      children: [
+        pw.Text(title),
+        pw.SizedBox(width: 20),
+        condition != "" ? pw.Text(value) : pw.SizedBox(height: 0, width: 0),
+      ],
+    );
+  }
+
+  Future<void> generatePDF(String documentId) async {
+    final pdf = pw.Document();
+    final headerImage = await addImage(pdf, 'images/sinalhanLogo.png');
+
+    // Retrieve the specific patient document from Firestore
+    final patientDoc = await FirebaseFirestore.instance
+        .collection('patients')
+        .doc(documentId)
+        .get();
+    if (patientDoc.exists) {
+      final patientData = patientDoc.data();
+      List<dynamic> birthControlList = [];
+      List<dynamic> pastMedicalList = [];
+      List<dynamic> pastOperationsList = [];
+      List<dynamic> familyDiseasesList = [];
+      Map<String, dynamic> additionalInfo = patientData!["additional info"];
+      final birthControl = additionalInfo!["birth control"];
+      final medicalList = additionalInfo!["pastMedicalList"];
+      final operationList = additionalInfo!["past operation"];
+      final familyDisease = additionalInfo!["family diseases"];
+      if (birthControl != null && birthControl is List<dynamic>) {
+        birthControlList.addAll(birthControl);
+      }
+      if (familyDisease != null && familyDisease is List<dynamic>) {
+        familyDiseasesList.addAll(familyDisease);
+      }
+      if (operationList != null && operationList is List<dynamic>) {
+        pastOperationsList.addAll(operationList);
+      }
+      if (medicalList != null && medicalList is List<dynamic>) {
+        pastMedicalList.addAll(medicalList);
+      }
+      List<dynamic> childrenImmunizationsList = [];
+      final childrenImmunizations = additionalInfo!["children immunizations"];
+      if (childrenImmunizations != null &&
+          childrenImmunizations is List<dynamic>) {
+        // Store the elements of the children immunizations array in the list
+        childrenImmunizationsList.addAll(childrenImmunizations);
+      }
+
+      List<dynamic> womenImmunizationsList = [];
+      final womenImmunizations = additionalInfo!["women immunizations"];
+      if (womenImmunizations != null && womenImmunizations is List<dynamic>) {
+        // Store the elements of the women immunizations array in the list
+        womenImmunizationsList.addAll(womenImmunizations);
+      }
+
+      List<dynamic> pregnantImmunizationsList = [];
+      final pregnantImmunizations = additionalInfo!["pregnant immunizations"];
+      if (pregnantImmunizations != null &&
+          pregnantImmunizations is List<dynamic>) {
+        // Store the elements of the pregnant immunizations array in the list
+        pregnantImmunizationsList.addAll(pregnantImmunizations);
+      }
+
+      pdf.addPage(pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pdfWidgets.Row(children: [
+                pdfWidgets.Container(width: 50, height: 50, child: headerImage),
+                pdfWidgets.SizedBox(width: 20),
+                pdfWidgets.Column(
+                  crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                  children: [
+                    pdfWidgets.Container(
+                      child: pdfWidgets.Text(
+                        'Barangay Sinalhan Clinic',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                    pdfWidgets.Text(
+                      'Patient Profile',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: pdfWidgets.FontWeight.bold,
+                      ),
+                    ),
+                    pdfWidgets.Text(
+                      'Generated on: ${_getFormattedDate()}',
+                      style: pdfWidgets.TextStyle(
+                        fontSize: 10.0,
+                        color: PdfColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ]),
+              pw.SizedBox(height: 30),
+              pw.Text('Name: ' +
+                  patientData!['first name'] +
+                  " " +
+                  patientData["last name"]),
+              pw.SizedBox(height: 10),
+              pw.Text('Category: ' + patientData!['category']),
+              pw.SizedBox(height: 10),
+              pw.Text('Birthdate: ' + patientData!['birthdate']),
+              pw.SizedBox(height: 10),
+              pw.Text('Gender: ' + patientData!['gender']),
+              pw.SizedBox(height: 10),
+              pw.Text('Address: ' + patientData!['address']),
+              pw.SizedBox(height: 10),
+              pw.Text('Phone Number: ' + patientData!['contact number']),
+              pw.SizedBox(height: 10),
+              pw.Text('Civil Status: ' + patientData!['civil status']),
+              pw.SizedBox(height: 10),
+              pw.Text('Religion: ' + patientData!['religion']),
+              pw.SizedBox(height: 10),
+              pw.Text('Occupation: ' + patientData!['occupation']),
+              pw.SizedBox(height: 10),
+              pw.Text('Mother\'s Name: ' + patientData!['mothers name']),
+              pw.SizedBox(height: 10),
+              pw.Text('Father\'s Name: ' + patientData!['fathers name']),
+              pw.SizedBox(height: 10),
+              pdfRow(
+                  additionalInfo,
+                  'Smoking: ' + additionalInfo!['smoking'],
+                  additionalInfo['packs per year'],
+                  'Packs per year: ' + additionalInfo!['packs per year']),
+              pw.SizedBox(height: 10),
+              pdfRow(
+                  additionalInfo,
+                  'Alcohol: ' + additionalInfo!['alcohol'],
+                  additionalInfo['bottle per year'],
+                  'Bottles per Year: ' + additionalInfo!['bottle per year']),
+              pw.SizedBox(height: 10),
+              patientData['gender'] == 'Female'
+                  ? pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                          pw.Text('Menarche: ' +
+                              additionalInfo['menarche'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Number of pads/day: ' +
+                              additionalInfo['pads per day'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Interval Cycle: ' +
+                              additionalInfo['interval cycle'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Menopause: ' +
+                              additionalInfo['menopause'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Gravida: ' +
+                              additionalInfo['gravida'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text(
+                              'Parity: ' + additionalInfo['parity'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('No. of Abortion: ' +
+                              additionalInfo['number of abortion'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('No. of Premature: ' +
+                              additionalInfo['number of premature'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('No. of living Children: ' +
+                              additionalInfo['number of premature'].toString()),
+                          pw.SizedBox(height: 10),
+                          pw.Text('Access to family planning: ' +
+                              additionalInfo['family planning'].toString()),
+                          pw.SizedBox(height: 10),
+                        ])
+                  : pw.Container(),
+            ],
+          );
+        },
+      ));
+      pdf.addPage(
+        pw.MultiPage(
+          build: (pw.Context context) {
+            return [
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Birth Control Method: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: birthControlList
+                          .map((control) => pw.Text(control.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Past Medical History: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: pastMedicalList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Past Operations: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: pastOperationsList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Family Diseases: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: familyDiseasesList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Children Immunizations: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: childrenImmunizationsList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Women Immunizations: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: womenImmunizationsList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Pregnant Immunizations: '),
+                  pw.Container(
+                    alignment: pw.Alignment.topLeft,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: pregnantImmunizationsList
+                          .map((immunization) =>
+                              pw.Text(immunization.toString()))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ];
+          },
+        ),
+      );
+
+      // Save the PDF file
+      final bytes = await pdf.save();
+
+      // Convert the bytes to Blob
+      final blob = html.Blob([bytes], 'application/pdf');
+
+      // Create a download URL
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      // Create an anchor element with the download URL
+      final anchor = html.AnchorElement()
+        ..href = url
+        ..download = 'patient_$documentId.pdf';
+
+      // Programmatically click the anchor to trigger the download
+      anchor.click();
+
+      // Clean up the temporary objects
+      html.Url.revokeObjectUrl(url);
+    } else {
+      print('Patient document not found');
+    }
   }
 
   Future<Widget> _getImageWidget() async {
@@ -354,13 +709,11 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                       height: 40,
                                     ),
                                     TextButton(
-                                      child: Text(
-                                        "View More",
-                                        style:
-                                            TextStyle(color: secondaryaccent),
-                                      ),
-                                      onPressed: () {},
-                                    ),
+                                        onPressed: () async {
+                                          await generatePDF(data["uid"]);
+                                          print('PDF generated');
+                                        },
+                                        child: Text("Download PDF"))
                                   ],
                                 ),
                               ),
