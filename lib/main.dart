@@ -5,6 +5,7 @@ import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientform.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientformedit.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/prenatalform.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 void main() async {
@@ -30,9 +31,11 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
 
-      home: LoginPage(),
+      //home: LoginPage(),
 
       //home: IndividualPatientRecordForm(),
+      home: PreNatalRecordForm(),
+
       // home: IndividualPatientEditForm(
       //   uid: "8gNCQo3k5jdBHqNYSvvmMBLlCFb2",
       // )
