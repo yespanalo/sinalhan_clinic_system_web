@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individualpatientform.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/wellbabyform.dart';
 
 class categorySelection extends StatefulWidget {
   const categorySelection({Key? key}) : super(key: key);
@@ -140,7 +141,7 @@ class _categorySelectionState extends State<categorySelection> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => IndividualPatientRecordForm(),
+                        builder: (context) => WellBabyRecordForm(),
                       ),
                     );
                   },

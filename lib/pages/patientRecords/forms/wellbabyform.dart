@@ -24,34 +24,87 @@ class WellBabyRecordForm extends StatefulWidget {
 }
 
 class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
+  Future<bool> addWellBabyPatient() async {
+    if (firstName.text.isEmpty ||
+        lastName.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        motherMobileNumber.text.isEmpty ||
+        birthdateController.text.isEmpty ||
+        birthWeightController.text.isEmpty ||
+        birthLengthController.text.isEmpty ||
+        motherName.text.isEmpty) {
+      // Show an error message or perform necessary actions for handling empty fields
+      Fluttertoast.showToast(
+        msg: "Please fill in all required fields",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text);
+      await FirebaseFirestore.instance
+          .collection('patients')
+          .doc(userCredential.user!.uid)
+          .set({
+        'type': "Patient",
+        'first name': firstName.text,
+        'last name': lastName.text,
+        'middle name': middleName.text,
+        'gender': genderDropdownValue,
+        'birthdate': birthdateController.text,
+        'weight': birthWeightController.text,
+        'length': birthLengthController.text,
+        'place of delivery': podValue,
+        'type of delivery': todValue,
+        'attended by': abValue,
+        'mother name': motherName.text,
+        'mother age': motherAddress.text,
+        'contact number': motherMobileNumber.text,
+        'mother address': motherAddress.text,
+        'mother birthday': motherBdayController.text,
+        'uid': userCredential.user!.uid,
+        'category': "Well-Baby Record",
+        'email': emailController.text
+      });
+
+      Fluttertoast.showToast(
+        msg: "Success!",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
+      return true; // Return true to indicate success
+    } catch (error) {
+      print('Error adding Well-Baby patient: $error');
+      return false; // Return false to indicate failure
+    }
+  }
+
   TextEditingController firstName = new TextEditingController();
   TextEditingController middleName = new TextEditingController();
   TextEditingController lastName = new TextEditingController();
   TextEditingController emailController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
   TextEditingController birthdateController = new TextEditingController();
-  TextEditingController weightController = new TextEditingController();
+  TextEditingController birthWeightController = new TextEditingController();
   TextEditingController birthLengthController = new TextEditingController();
   TextEditingController doneDateController = new TextEditingController();
   TextEditingController nbsrController = new TextEditingController();
   TextEditingController motherName = new TextEditingController();
+  TextEditingController motherMobileNumber = new TextEditingController();
   TextEditingController motherAge = new TextEditingController();
-  TextEditingController motherCpab = new TextEditingController();
   TextEditingController motherAddress = new TextEditingController();
   TextEditingController motherBdayController = new TextEditingController();
-  TextEditingController dateOfBCG = new TextEditingController();
-  TextEditingController dateOfHEPAB = new TextEditingController();
-  TextEditingController dateOfPENTA1 = new TextEditingController();
-  TextEditingController dateOfPENTA2 = new TextEditingController();
-  TextEditingController dateOfPENTA3 = new TextEditingController();
-  TextEditingController dateOfMCV1 = new TextEditingController();
-  TextEditingController dateOfMCV2 = new TextEditingController();
-  TextEditingController dateOfOPV1 = new TextEditingController();
-  TextEditingController dateOfOPV2 = new TextEditingController();
-  TextEditingController dateOfOPV3 = new TextEditingController();
-  TextEditingController dateOfROTA1 = new TextEditingController();
-  TextEditingController dateOfROTA2 = new TextEditingController();
-  TextEditingController dateOfIPV = new TextEditingController();
+
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = genderList.first;
   bool isMale = true;
@@ -74,31 +127,18 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
       'middle name': middleName.text,
       'gender': genderDropdownValue,
       'birthdate': birthdateController.text,
-      'weight': weightController.text,
+      'weight': birthWeightController.text,
       'length': birthLengthController.text,
       'place of delivery': podValue,
       'type of delivery': todValue,
       'attended by': abValue,
-      'done date': doneDateController.text,
-      'newborn screening result': nbsrController.text,
       'mother name': motherName.text,
       'mother age': motherAddress.text,
-      'mother cpab': motherCpab.text,
+      'mother contact number': motherMobileNumber.text,
       'mother address': motherAddress.text,
       'mother birthday': motherBdayController.text,
-      'date of bcg': dateOfBCG.text,
-      'date of hepa b': dateOfHEPAB.text,
-      'date of penta 1': dateOfPENTA1.text,
-      'date of penta 2': dateOfPENTA2.text,
-      'date of penta 3': dateOfPENTA3.text,
-      'date of mcv 1': dateOfMCV1.text,
-      'date of mcv 2': dateOfMCV2.text,
-      'date of opv 1': dateOfOPV1.text,
-      'date of opv 2': dateOfOPV2.text,
-      'date of opv 3': dateOfOPV3.text,
-      'date of rota 1': dateOfROTA1.text,
-      'date of rota 2': dateOfROTA2.text,
-      'date of ipv': dateOfIPV.text,
+      'uid': userCredential.user!.uid,
+      'category': "Well-Baby Record"
     });
   }
 
@@ -255,68 +295,12 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
                         placeOfDelivery(),
                         typeOfDelivery(),
                         attendedBy(),
-                        SizedBox(
-                          height: 80,
-                        ),
-                        Header(text: "New Born Screening"),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Done Date",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: doneDateController,
-                                    decoration: InputDecoration(
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      doneDateController.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        newBornScreeningResult(),
                         Header(text: "Mother Information"),
                         MotherWidget(
                           motherName: motherName,
                           motherAge: motherAge,
-                          motherCpab: motherCpab,
                           motherAddress: motherAddress,
+                          mobileNumber: motherMobileNumber,
                         ),
                         Container(
                           margin: EdgeInsets.only(
@@ -369,682 +353,65 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
                                 ),
                               ]),
                         ),
-                        Header(text: "Immunizations"),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "BCG",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfBCG,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of BCG",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfBCG.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
+                        Row(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 20, bottom: 10, left: 20, right: 20),
+                              width: 370,
+                              height: 50,
+                              child: TextButton(
+                                onPressed: () async {
+                                  bool addWellBabySuccess =
+                                      await addWellBabyPatient();
+                                  if (addWellBabySuccess) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
                                   ),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          secondaryaccent),
                                 ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "HEPA B",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
+                                child: Text(
+                                  "Add",
+                                  style: TextStyle(color: Colors.white),
                                 ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfHEPAB,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of HEPA B",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfHEPAB.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 20, bottom: 10, left: 20, right: 20),
+                              width: 370,
+                              height: 50,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
                                   ),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.grey),
                                 ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "PENTA 1",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
+                                child: Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.white),
                                 ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfPENTA1,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of PENTA 1",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfPENTA1.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "PENTA 2",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfPENTA2,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of PENTA 2",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfPENTA2.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "PENTA 3",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfPENTA3,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of PENTA 3",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfPENTA3.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "MCV 1",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfMCV1,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of MCV 1",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfMCV1.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "MCV 2",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfMCV2,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of MCV 2",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfMCV2.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "OPV 1",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfOPV1,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of OPV 1",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfOPV1.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "OPV 2",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfOPV2,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of OPV 2",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfOPV2.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "OPV 3",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfOPV3,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of OPV 3",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfOPV3.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "ROTA 1",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfROTA1,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of ROTA 1",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfROTA1.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "ROTA 2",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfROTA2,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of ROTA 2",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfROTA2.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              top: 10, bottom: 10, left: 30, right: 20),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "IPV",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
-                                    controller: dateOfIPV,
-                                    decoration: InputDecoration(
-                                        hintText: "Date of IPV",
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      dateOfIPV.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
-                                  ),
-                                ),
-                              ]),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -1054,46 +421,6 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Container newBornScreeningResult() {
-    return Container(
-      margin: EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Result",
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            height: 40,
-            width: 330,
-            child: TextField(
-              controller: nbsrController,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ], //
-              decoration: InputDecoration(
-                  hintText: "Text",
-                  enabledBorder: OutlineInputBorder(
-                    borderSide:
-                        const BorderSide(width: 0.5, color: Colors.grey),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide:
-                        const BorderSide(width: 0.5, color: Colors.grey),
-                    borderRadius: BorderRadius.circular(5),
-                  )),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1110,7 +437,7 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
           height: 10,
         ),
         Container(
-          height: 75,
+          height: 128,
           width: 330,
           padding: EdgeInsets.only(left: 8, right: 8),
           child: Column(
@@ -1330,7 +657,7 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Weight",
+            "Birth Weight",
             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
           ),
           SizedBox(
@@ -1340,7 +667,7 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
             height: 40,
             width: 330,
             child: TextField(
-              controller: weightController,
+              controller: birthWeightController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -1469,20 +796,10 @@ class email extends StatelessWidget {
   }
 }
 
-class MotherWidget extends StatelessWidget {
-  const MotherWidget(
-      {Key? key,
-      required this.motherName,
-      required this.motherAge,
-      required this.motherCpab,
-      required this.motherAddress})
-      : super(key: key);
+class phoneNumber extends StatelessWidget {
+  const phoneNumber({Key? key, required this.contactNumber}) : super(key: key);
 
-  final TextEditingController motherName;
-  final TextEditingController motherAge;
-  final TextEditingController motherCpab;
-  final TextEditingController motherAddress;
-
+  final TextEditingController contactNumber;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1490,11 +807,67 @@ class MotherWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+              height: 40,
+              width: 330,
+              child: TextField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                controller: contactNumber,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              )),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "Please enter a valid phone number.",
+            style: TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MotherWidget extends StatelessWidget {
+  const MotherWidget(
+      {Key? key,
+      required this.motherName,
+      required this.motherAge,
+      required this.motherAddress,
+      required this.mobileNumber})
+      : super(key: key);
+
+  final TextEditingController motherName;
+  final TextEditingController motherAge;
+  final TextEditingController motherAddress;
+  final TextEditingController mobileNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           SizedBox(
             height: 10,
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1526,6 +899,9 @@ class MotherWidget extends StatelessWidget {
                   )
                 ],
               ),
+              SizedBox(
+                width: 30,
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1556,6 +932,10 @@ class MotherWidget extends StatelessWidget {
                   )
                 ],
               ),
+            ],
+          ),
+          Row(
+            children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1563,7 +943,7 @@ class MotherWidget extends StatelessWidget {
                     width: 215,
                     height: 40,
                     child: TextField(
-                      controller: motherCpab,
+                      controller: motherAddress,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
@@ -1581,41 +961,12 @@ class MotherWidget extends StatelessWidget {
                     height: 10,
                   ),
                   Text(
-                    "CPAB(TT GIVEN TO MOTHER)",
+                    "Complete Address",
                     style: TextStyle(fontSize: 11),
                   )
                 ],
               ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 215,
-                height: 40,
-                child: TextField(
-                  controller: motherAddress,
-                  decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(width: 0.5, color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(width: 0.5, color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                      )),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                "Complete Address",
-                style: TextStyle(fontSize: 11),
-              )
+              phoneNumber(contactNumber: mobileNumber)
             ],
           ),
         ],
@@ -1653,7 +1004,7 @@ class NameWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
+                    width: 260,
                     height: 40,
                     child: TextField(
                       controller: firstname,
@@ -1683,7 +1034,7 @@ class NameWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
+                    width: 260,
                     height: 40,
                     child: TextField(
                       controller: middlename,
@@ -1713,7 +1064,7 @@ class NameWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
+                    width: 260,
                     height: 40,
                     child: TextField(
                       controller: lastname,

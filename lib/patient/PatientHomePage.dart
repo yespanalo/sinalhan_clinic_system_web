@@ -54,6 +54,19 @@ class _PatientHomePageState extends State<PatientHomePage> {
         FirebaseFirestore.instance.collection('patients').doc(widget.uid).get();
   }
 
+  String _calculateAge(String birthdate) {
+    final DateTime now = DateTime.now();
+    final DateTime dateOfBirth = DateTime.parse(birthdate);
+    final int age = now.year - dateOfBirth.year;
+    return '$age yrs, ';
+  }
+
+  String _formatBirthdate(String birthdate) {
+    final DateTime parsedDate = DateTime.parse(birthdate);
+    final DateFormat formatter = DateFormat('MMMM d, yyyy');
+    return formatter.format(parsedDate);
+  }
+
   String _getFormattedDate() {
     final DateTime now = DateTime.now();
     final DateFormat formatter = DateFormat('MMMM d, yyyy, hh:mm a');
@@ -577,16 +590,47 @@ class _PatientHomePageState extends State<PatientHomePage> {
                                               letterSpacing: 1.5,
                                               wordSpacing: 5.0),
                                         ),
-                                        Text(
-                                          "26 yrs, female · March 24, 1997",
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                              letterSpacing: 1,
-                                              wordSpacing: 5.0),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              _calculateAge(data['birthdate']),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                                letterSpacing: 1,
+                                                wordSpacing: 5.0,
+                                              ),
+                                            ),
+                                            Text(
+                                              data['gender'],
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                  letterSpacing: 1,
+                                                  wordSpacing: 5.0),
+                                            ),
+                                            Text(
+                                              " · ",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                  letterSpacing: 1,
+                                                  wordSpacing: 5.0),
+                                            ),
+                                            Text(
+                                              _formatBirthdate(
+                                                  data['birthdate']),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                                letterSpacing: 1,
+                                                wordSpacing: 5.0,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         Text(
-                                          "#61, Marinig Cabuyao Laguna",
+                                          data['address'],
                                           style: TextStyle(
                                               fontWeight: FontWeight.w600,
                                               fontSize: 12,

@@ -6,7 +6,9 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:intl/intl.dart';
+import 'package:sinalhan_clinic_system_web/categorySelection.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 import 'forms/individualpatientform.dart';
@@ -188,32 +190,32 @@ Container IndividualPatientRecord(BuildContext context) {
                 ),
               ),
             ),
-            SizedBox(
-              width: 100,
-              child: TextButton(
-                  style: ButtonStyle(
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(15)),
-                    // foregroundColor:
-                    //     MaterialStateProperty.all<Color>(Colors.red),
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(secondaryaccent),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                        side: BorderSide(color: secondaryaccent),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      new MaterialPageRoute(
-                          builder: (_) => new IndividualPatientRecordForm()),
-                    );
-                  },
-                  child: Text("Add",
-                      style: TextStyle(fontSize: 16, color: Colors.white))),
-            )
+            // SizedBox(
+            //   width: 100,
+            //   child: TextButton(
+            //       style: ButtonStyle(
+            //         padding: MaterialStateProperty.all<EdgeInsets>(
+            //             const EdgeInsets.all(15)),
+            //         // foregroundColor:
+            //         //     MaterialStateProperty.all<Color>(Colors.red),
+            //         backgroundColor:
+            //             MaterialStateProperty.all<Color>(secondaryaccent),
+            //         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            //           RoundedRectangleBorder(
+            //             borderRadius: BorderRadius.circular(18.0),
+            //             side: BorderSide(color: secondaryaccent),
+            //           ),
+            //         ),
+            //       ),
+            //       onPressed: () {
+            //         Navigator.of(context).push(
+            //           new MaterialPageRoute(
+            //               builder: (_) => new categorySelection()),
+            //         );
+            //       },
+            //       child: Text("Add",
+            //           style: TextStyle(fontSize: 16, color: Colors.white))),
+            // )
 
             // )
           ],
@@ -333,12 +335,22 @@ class _MyDataTableSource extends DataTableSource {
                   size: 15,
                 ),
                 onPressed: () {
-                  Navigator.of(_context).push(
-                    MaterialPageRoute(
-                        builder: (_) => PatientProfiel(
-                              uid: data['uid'].toString(),
-                            )),
-                  );
+                  if (data['category'] == "Individual Patient Record") {
+                    Navigator.of(_context).push(
+                      MaterialPageRoute(
+                          builder: (_) => PatientProfiel(
+                                uid: data['uid'].toString(),
+                              )),
+                    );
+                  } else if (data['category'] == "Well-Baby Record") {
+                    Navigator.of(_context).push(
+                      MaterialPageRoute(
+                          builder: (_) => patientProfileWellbaby(
+                                uid: data['uid'].toString(),
+                              )),
+                    );
+                  }
+
                   // Edit user logic
                 },
               ),

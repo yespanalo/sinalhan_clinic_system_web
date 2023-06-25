@@ -8,6 +8,7 @@ import 'package:sinalhan_clinic_system_web/categorySelection.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/function/authFunctions.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
 
 import '../patient/PatientHomePage.dart';
 
@@ -224,16 +225,34 @@ class _LoginPageState extends State<LoginPage> {
                                             .doc(uid)
                                             .get();
 
-                                    if (patientSnapshot.exists) {
+                                    if (patientSnapshot != null &&
+                                        patientSnapshot.exists) {
                                       // UID exists in the "patients" collection
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PatientHomePage(
-                                            uid: uid,
+                                      var data = patientSnapshot.data()
+                                          as Map<String, dynamic>?;
+                                      if (data!['category'] ==
+                                          "Individual Patient Record") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PatientHomePage(
+                                              uid: uid,
+                                            ),
                                           ),
-                                        ),
-                                      );
+                                        );
+                                      } else if (data!['category'] ==
+                                          "Well-Baby Record") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                patientProfileWellbaby(
+                                              uid: data!['uid'],
+                                            ),
+                                          ),
+                                        );
+                                      }
                                     } else if (userSnapshot.exists) {
                                       // UID exists in the "users" collection
                                       Navigator.push(
