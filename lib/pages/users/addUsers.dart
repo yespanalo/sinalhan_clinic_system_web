@@ -111,7 +111,7 @@ class _AddUserState extends State<AddUser> {
               firstNameController.text,
               lastNameController.text,
               mobileNumberController.text,
-              _userType,
+              'Admin',
               context,
             );
 
@@ -368,62 +368,6 @@ class _AddUserState extends State<AddUser> {
                                                 BorderRadius.circular(10),
                                           )),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                "Type",
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 118, 118, 118),
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 200,
-                                        height: 30,
-                                        child: ListTile(
-                                          title: Text('Admin',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15)),
-                                          leading: Radio(
-                                              value: 'Admin',
-                                              groupValue: _userType,
-                                              onChanged: (value) {
-                                                checkUserTypeRadio(
-                                                    value as String);
-                                              }),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 29,
-                                      ),
-                                      Container(
-                                        width: 250,
-                                        height: 30,
-                                        child: ListTile(
-                                          title: Text('Health Worker',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15)),
-                                          leading: Radio(
-                                              value: 'Health Worker',
-                                              groupValue: _userType,
-                                              onChanged: (value) {
-                                                checkUserTypeRadio(
-                                                    value as String);
-                                              }),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ],
                               ),
