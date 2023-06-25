@@ -29,6 +29,8 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  bool isInvalid = false;
+
   bool isWrongCredentials = false;
   @override
   Widget build(BuildContext context) {
@@ -89,6 +91,13 @@ class _LoginPageState extends State<LoginPage> {
                         "Barangay Sinalhan Health Clinic Management System",
                         style: h4,
                       ),
+                      Visibility(
+                          visible: isInvalid,
+                          child: Text(
+                            "Invalid email or password!",
+                            style: TextStyle(
+                                color: Colors.red, fontWeight: FontWeight.bold),
+                          )),
                       shortsizedbox,
                       Visibility(
                         visible: isWrongCredentials,
@@ -237,6 +246,10 @@ class _LoginPageState extends State<LoginPage> {
                                       // UID does not exist in either collection
                                       // Handle the case when the user is not found
                                     }
+                                  } else {
+                                    setState(() {
+                                      isInvalid = true;
+                                    });
                                   }
                                 },
                                 child: const Text("Log in",
