@@ -37,6 +37,7 @@ class _IndividualPatientRecordFormState
   TextEditingController mobileNumber = new TextEditingController();
   TextEditingController birthdateController = new TextEditingController();
   TextEditingController streetController = new TextEditingController();
+  TextEditingController barangayController = new TextEditingController();
   TextEditingController cityController = new TextEditingController();
   TextEditingController provinceController = new TextEditingController();
   TextEditingController religionController = new TextEditingController();
@@ -264,74 +265,101 @@ class _IndividualPatientRecordFormState
   }
 
   //firebase function
-  void addIndividualPatient() async {
-    // Set the initials to whatever you want.
-    UserCredential userCredential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text);
-    await FirebaseFirestore.instance
-        .collection('patients')
-        .doc(userCredential.user!.uid)
-        .set({
-      'type': "Patient",
-      'first name': firstName.text,
-      'last name': lastName.text,
-      'middle name': middleName.text,
-      'category': "Individual Patient Record",
-      'email': emailController.text,
-      'contact number': mobileNumber.text,
-      'uid': userCredential.user!.uid,
-      'address': streetController.text +
-          ", " +
-          cityController.text +
-          ", " +
-          provinceController.text,
-      'gender': genderDropdownValue,
-      'birthdate': birthdateController.text,
-      'civil status': CivilStatusDropdownValue,
-      'educational attainment': EducationDropdownValue,
-      'religion': religionController.text,
-      'occupation': occupationController.text,
-      'mothers name': motherName.text,
-      'fathers name': fatherName.text,
-      "additional info": {
-        "alcohol": alcoholValue,
-        "birth control": birthControlList,
-        "elderly immunizations": elderlyImmunizationList,
-        "pregnant immunizations": pregnantImmunizationList,
-        "women immunizations": youngWomenImmunizationList,
-        "children immunizations": childrenImmunizationList,
-        "family diseases": familyDiseasesList,
-        "past operation": pastOperationList,
-        "bottle per year": bottlesController.text,
-        "smoking": smokingValue,
-        "packs per year": packsController.text,
-        "illicit drugs": drugsValue,
-        "menopause": menopauseValue,
-        "family planning": familyplanningValue,
-        "last mens": lastMensController.text,
-        "period duration": periodDurationController.text,
-        "pads per day": padsController.text,
-        "interval cycle": intervalCycleController.text,
-        "onset of sexual intercourse": onsetController.text,
-        "gravida": gravidaController.text,
-        "parity": parityController.text,
-        "number of premature": prematureController.text,
-        "number of abortion": abortionController.text,
-        "number of living children": livingChildrenController.text,
-        "pastMedicalList": pastMedicalHistoryList,
-        "menarche": MenarcheDropdownValue
-      }
-    });
-    Fluttertoast.showToast(
+  Future<bool> addIndividualPatient() async {
+    if (firstName.text.isEmpty ||
+        lastName.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        mobileNumber.text.isEmpty ||
+        birthdateController.text.isEmpty ||
+        motherName.text.isEmpty ||
+        fatherName.text.isEmpty) {
+      // Show an error message or perform necessary actions for handling empty fields
+      Fluttertoast.showToast(
+        msg: "Please fill in all required fields",
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 2,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      await FirebaseFirestore.instance
+          .collection('patients')
+          .doc(userCredential.user!.uid)
+          .set({
+        'type': "Patient",
+        'first name': firstName.text,
+        'last name': lastName.text,
+        'middle name': middleName.text,
+        'category': "Individual Patient Record",
+        'email': emailController.text,
+        'contact number': mobileNumber.text,
+        'uid': userCredential.user!.uid,
+        'address': streetController.text +
+            ", " +
+            cityController.text +
+            ", " +
+            provinceController.text,
+        'gender': genderDropdownValue,
+        'birthdate': birthdateController.text,
+        'civil status': CivilStatusDropdownValue,
+        'educational attainment': EducationDropdownValue,
+        'religion': religionController.text,
+        'occupation': occupationController.text,
+        'mothers name': motherName.text,
+        'fathers name': fatherName.text,
+        "additional info": {
+          "alcohol": alcoholValue,
+          "birth control": birthControlList,
+          "elderly immunizations": elderlyImmunizationList,
+          "pregnant immunizations": pregnantImmunizationList,
+          "women immunizations": youngWomenImmunizationList,
+          "children immunizations": childrenImmunizationList,
+          "family diseases": familyDiseasesList,
+          "past operation": pastOperationList,
+          "bottle per year": bottlesController.text,
+          "smoking": smokingValue,
+          "packs per year": packsController.text,
+          "illicit drugs": drugsValue,
+          "menopause": menopauseValue,
+          "family planning": familyplanningValue,
+          "last mens": lastMensController.text,
+          "period duration": periodDurationController.text,
+          "pads per day": padsController.text,
+          "interval cycle": intervalCycleController.text,
+          "onset of sexual intercourse": onsetController.text,
+          "gravida": gravidaController.text,
+          "parity": parityController.text,
+          "number of premature": prematureController.text,
+          "number of abortion": abortionController.text,
+          "number of living children": livingChildrenController.text,
+          "pastMedicalList": pastMedicalHistoryList,
+          "menarche": MenarcheDropdownValue
+        }
+      });
+      // Rest of your code...
+
+      Fluttertoast.showToast(
         msg: "Success!",
         gravity: ToastGravity.CENTER,
         timeInSecForIosWeb: 2,
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        fontSize: 16.0);
-    // uploadpastMedicalList(userCredential.user!.uid);
-    // _uploadImage(userCredential.user!.uid);
+        fontSize: 16.0,
+      );
+
+      return true; // Return true to indicate success
+    } catch (error) {
+      print('Error adding individual patient: $error');
+      return false; // Return false to indicate failure
+    }
   }
 
   @override
@@ -464,6 +492,7 @@ class _IndividualPatientRecordFormState
                       patientGender(),
                       Address(
                         streetAddress: streetController,
+                        barangayAddress: barangayController,
                         cityAddress: cityController,
                         provinceAddress: provinceController,
                       ),
@@ -654,9 +683,12 @@ class _IndividualPatientRecordFormState
                       width: 400,
                       height: 50,
                       child: TextButton(
-                        onPressed: () {
-                          addIndividualPatient();
-                          Navigator.pop(context);
+                        onPressed: () async {
+                          bool addIndividualPatientSuccess =
+                              await addIndividualPatient();
+                          if (addIndividualPatientSuccess) {
+                            Navigator.pop(context);
+                          }
                         },
                         style: ButtonStyle(
                           shape:
@@ -840,6 +872,9 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+              ],
               controller: motherName,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
@@ -876,6 +911,9 @@ class _IndividualPatientRecordFormState
             height: 40,
             width: 330,
             child: TextField(
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+              ],
               controller: fatherName,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
@@ -2292,14 +2330,16 @@ class phoneNumber extends StatelessWidget {
             height: 10,
           ),
           Container(
-            height: 40,
-            width: 330,
-            child: TextField(
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(11),
-              ],
-              controller: contactNumber,
-              decoration: InputDecoration(
+              height: 40,
+              width: 330,
+              child: TextField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                controller: contactNumber,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderSide:
                         const BorderSide(width: 0.5, color: Colors.grey),
@@ -2309,9 +2349,9 @@ class phoneNumber extends StatelessWidget {
                     borderSide:
                         const BorderSide(width: 0.5, color: Colors.grey),
                     borderRadius: BorderRadius.circular(5),
-                  )),
-            ),
-          ),
+                  ),
+                ),
+              )),
           SizedBox(
             height: 10,
           ),
@@ -2329,11 +2369,13 @@ class Address extends StatelessWidget {
   const Address({
     Key? key,
     required this.streetAddress,
+    required this.barangayAddress,
     required this.cityAddress,
     required this.provinceAddress,
   }) : super(key: key);
 
   final TextEditingController streetAddress;
+  final TextEditingController barangayAddress;
   final TextEditingController cityAddress;
   final TextEditingController provinceAddress;
 
@@ -2389,7 +2431,37 @@ class Address extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 330,
+                        width: 270,
+                        height: 40,
+                        child: TextField(
+                          controller: barangayAddress,
+                          decoration: InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    width: 0.5, color: Colors.grey),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    width: 0.5, color: Colors.grey),
+                                borderRadius: BorderRadius.circular(5),
+                              )),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        "Barangay",
+                        style: TextStyle(fontSize: 11),
+                      )
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 270,
                         height: 40,
                         child: TextField(
                           controller: cityAddress,
@@ -2419,7 +2491,7 @@ class Address extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 330,
+                        width: 270,
                         height: 40,
                         child: TextField(
                           controller: provinceAddress,
@@ -2493,6 +2565,9 @@ class NameWidget extends StatelessWidget {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: firstname,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
@@ -2523,6 +2598,9 @@ class NameWidget extends StatelessWidget {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: middlename,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
@@ -2553,6 +2631,9 @@ class NameWidget extends StatelessWidget {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: lastname,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(

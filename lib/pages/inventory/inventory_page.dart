@@ -1313,7 +1313,7 @@ class _Inventory_PageState extends State<Inventory_Page>
                 int rowsPerPage = snapshot.data!.size;
                 return LayoutBuilder(builder:
                     (BuildContext context, BoxConstraints constraints) {
-                  double columnspacing = constraints.maxWidth / (5.5 + 1);
+                  double columnspacing = constraints.maxWidth / (6 + 1);
                   return Theme(
                     data: Theme.of(context).copyWith(
                       dividerColor:

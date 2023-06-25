@@ -268,70 +268,89 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
           new TextEditingController()
             ..text = formData!['additional info']['number of living children'];
       var _text;
-      void updateIndividualPatient(String uid) async {
-        await FirebaseFirestore.instance
-            .collection('patients')
-            .doc(uid)
-            .update({
-          'type': "Patient",
-          'first name': firstname.text,
-          'last name': lastname.text,
-          'middle name': middlename.text,
-          'category': "Individual Patient Record",
-          'email': emailController.text,
-          'contact number': contactNumber.text,
-          'address': streetController.text +
-              ", " +
-              cityController.text +
-              ", " +
-              provinceController.text,
-          'gender': genderDropdownValue,
-          'birthdate': birthdateController.text,
-          'civil status': CivilStatusDropdownValue,
-          'educational attainment': EducationDropdownValue,
-          'religion': religionController.text,
-          'occupation': occupationController.text,
-          'mothers name': motherName.text,
-          'fathers name': fatherName.text,
-          "additional info": {
-            "alcohol": alcoholValue,
-            "birth control": birthControlList,
-            "elderly immunizations": elderlyImmunizationList,
-            "pregnant immunizations": pregnantImmunizationList,
-            "women immunizations": youngWomenImmunizationList,
-            "children immunizations": childrenImmunizationList,
-            "family diseases": familyDiseasesList,
-            "past operation": pastOperationList,
-            "bottle per year": bottlesController.text,
-            "smoking": smokingValue,
-            "packs per year": packsController.text,
-            "illicit drugs": drugsValue,
-            "menopause": menopauseValue,
-            "family planning": familyplanningValue,
-            "last mens": lastMensController.text,
-            "period duration": periodDurationController.text,
-            "pads per day": padsController.text,
-            "interval cycle": intervalCycleController.text,
-            "onset of sexual intercourse": onsetController.text,
-            "gravida": gravidaController.text,
-            "parity": parityController.text,
-            "number of premature": prematureController.text,
-            "number of abortion": abortionController.text,
-            "number of living children": livingChildrenController.text,
-            "pastMedicalList": pastMedicalHistoryList,
-            // "menarche": MenarcheDropdownValue
-          }
-        }).then((value) {
+
+      Future<bool> updateIndividualPatient(String uid) async {
+        if (firstname.text.isEmpty ||
+            lastname.text.isEmpty ||
+            contactNumber.text.isEmpty ||
+            birthdateController.text.isEmpty ||
+            motherName.text.isEmpty ||
+            fatherName.text.isEmpty) {
+          // Show an error message or perform necessary actions for handling empty fields
           Fluttertoast.showToast(
+            msg: "Please fill in all required fields",
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          return false;
+        } else {
+          try {
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .doc(uid)
+                .update({
+              'type': "Patient",
+              'first name': firstname.text,
+              'last name': lastname.text,
+              'middle name': middlename.text,
+              'category': "Individual Patient Record",
+              'email': emailController.text,
+              'contact number': contactNumber.text,
+              'address': streetController.text,
+              'gender': genderDropdownValue,
+              'birthdate': birthdateController.text,
+              'civil status': CivilStatusDropdownValue,
+              'educational attainment': EducationDropdownValue,
+              'religion': religionController.text,
+              'occupation': occupationController.text,
+              'mothers name': motherName.text,
+              'fathers name': fatherName.text,
+              "additional info": {
+                "alcohol": alcoholValue,
+                "birth control": birthControlList,
+                "elderly immunizations": elderlyImmunizationList,
+                "pregnant immunizations": pregnantImmunizationList,
+                "women immunizations": youngWomenImmunizationList,
+                "children immunizations": childrenImmunizationList,
+                "family diseases": familyDiseasesList,
+                "past operation": pastOperationList,
+                "bottle per year": bottlesController.text,
+                "smoking": smokingValue,
+                "packs per year": packsController.text,
+                "illicit drugs": drugsValue,
+                "menopause": menopauseValue,
+                "family planning": familyplanningValue,
+                "last mens": lastMensController.text,
+                "period duration": periodDurationController.text,
+                "pads per day": padsController.text,
+                "interval cycle": intervalCycleController.text,
+                "onset of sexual intercourse": onsetController.text,
+                "gravida": gravidaController.text,
+                "parity": parityController.text,
+                "number of premature": prematureController.text,
+                "number of abortion": abortionController.text,
+                "number of living children": livingChildrenController.text,
+                "pastMedicalList": pastMedicalHistoryList,
+                // "menarche": MenarcheDropdownValue
+              }
+            });
+            Fluttertoast.showToast(
               msg: "Success!",
               gravity: ToastGravity.CENTER,
               timeInSecForIosWeb: 2,
               backgroundColor: Colors.red,
               textColor: Colors.white,
-              fontSize: 16.0);
-        }).catchError((error) {
-          print("Failed to update document: $error");
-        });
+              fontSize: 16.0,
+            );
+            return true;
+          } catch (error) {
+            print('Error updating individual patient: $error');
+            return false; // Return false to indicate failure
+          }
+        }
       }
 
       return Scaffold(
@@ -601,9 +620,13 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                                 width: 390,
                                 height: 50,
                                 child: TextButton(
-                                  onPressed: () {
-                                    updateIndividualPatient(widget.uid);
-                                    Navigator.pop(context);
+                                  onPressed: () async {
+                                    bool addIndividualPatientSuccess =
+                                        await updateIndividualPatient(
+                                            widget.uid);
+                                    if (addIndividualPatientSuccess) {
+                                      Navigator.pop(context);
+                                    }
                                   },
                                   style: ButtonStyle(
                                     shape: MaterialStateProperty.all<
@@ -1661,6 +1684,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
             height: 40,
             width: 330,
             child: TextField(
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+              ],
               controller: fatherName,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
@@ -1697,6 +1723,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
             height: 40,
             width: 330,
             child: TextField(
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+              ],
               controller: motherName,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
@@ -1846,14 +1875,16 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
             height: 10,
           ),
           Container(
-            height: 40,
-            width: 330,
-            child: TextField(
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(11),
-              ],
-              controller: contactNumber,
-              decoration: InputDecoration(
+              height: 40,
+              width: 330,
+              child: TextField(
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                controller: contactNumber,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderSide:
                         const BorderSide(width: 0.5, color: Colors.grey),
@@ -1863,9 +1894,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                     borderSide:
                         const BorderSide(width: 0.5, color: Colors.grey),
                     borderRadius: BorderRadius.circular(5),
-                  )),
-            ),
-          ),
+                  ),
+                ),
+              )),
           SizedBox(
             height: 10,
           ),
@@ -1989,6 +2020,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: firstname,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
@@ -2019,6 +2053,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: middlename,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
@@ -2049,6 +2086,9 @@ class _IndividualPatientEditFormState extends State<IndividualPatientEditForm> {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                      ],
                       controller: lastname,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
