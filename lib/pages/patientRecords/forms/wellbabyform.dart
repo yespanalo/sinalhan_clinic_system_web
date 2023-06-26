@@ -133,7 +133,6 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
       'type of delivery': todValue,
       'attended by': abValue,
       'mother name': motherName.text,
-      'mother age': motherAddress.text,
       'mother contact number': motherMobileNumber.text,
       'mother address': motherAddress.text,
       'mother birthday': motherBdayController.text,

@@ -4,7 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+
+import '../../constants copy.dart';
 
 class patientProfileWellbaby extends StatefulWidget {
   const patientProfileWellbaby({required this.uid, Key? key}) : super(key: key);
@@ -184,19 +187,160 @@ class _patientProfileWellbabyState extends State<patientProfileWellbaby> {
                                         ],
                                       ),
                                     ),
+                                    Spacer(),
+                                    IconButton(
+                                        onPressed: () {
+                                          // Navigator.push(
+                                          //   context,
+                                          //   MaterialPageRoute(
+                                          //       builder: (context) =>
+                                          //           IndividualPatientEditForm(
+                                          //               uid: widget.uid)),
+                                          // );
+                                        },
+                                        icon: Icon(
+                                          FontAwesomeIcons.edit,
+                                          color: secondaryaccent,
+                                        ))
                                   ],
                                 ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Divider(
+                                  color: secondaryaccent,
+                                  thickness: 2,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Container(
+                                  margin: EdgeInsets.only(left: 50, right: 50),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "General Information".toUpperCase(),
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.5,
+                                            wordSpacing: 5.0),
+                                      ),
+                                      Text(
+                                        data['category'],
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                      SizedBox(
+                                        height: 40,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Informations(
+                                                  data['place of delivery'],
+                                                  "Place of Delivery"),
+                                              SizedBox(
+                                                height: 40,
+                                              ),
+                                              Informations(
+                                                  data['type of delivery'],
+                                                  "Type of Delivery"),
+                                              SizedBox(
+                                                height: 40,
+                                              ),
+                                              Informations(data['birthdate'],
+                                                  "Birthdate"),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Informations(
+                                                  data['length'] + " cm",
+                                                  "Birth lenght"),
+                                              SizedBox(
+                                                height: 40,
+                                              ),
+                                              Informations(
+                                                  data['weight'] + " kg",
+                                                  "Birth Weight"),
+                                              SizedBox(
+                                                height: 40,
+                                              ),
+                                              Informations(data['mother name'],
+                                                  "Mother's Name"),
+                                            ],
+                                          ),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Informations(
+                                                  data['contact number'],
+                                                  "Mother's contact"),
+                                              SizedBox(height: 40),
+                                              Informations(
+                                                  _calculateAge(
+                                                      data['mother birthday']),
+                                                  "Mother's Age"),
+                                              SizedBox(height: 40),
+                                              Informations(
+                                                  data['gender'].toString(),
+                                                  "Gender")
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 50,
+                                )
                               ],
                             ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
               );
             }
           }),
+    );
+  }
+
+  Column Informations(value, key) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value == null ? "N/A" : "$value",
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+              wordSpacing: 5.0),
+        ),
+        SizedBox(height: 10),
+        Text(
+          "$key",
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        )
+      ],
     );
   }
 }
