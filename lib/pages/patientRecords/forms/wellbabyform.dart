@@ -48,10 +48,17 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
               email: emailController.text, password: passwordController.text);
-      await FirebaseFirestore.instance
-          .collection('patients')
-          .doc(userCredential.user!.uid)
-          .set({
+
+// Reference the main "patients" collection
+      CollectionReference patientsCollection =
+          FirebaseFirestore.instance.collection('patients');
+
+// Create a new document in the "patients" collection
+      DocumentReference patientDocRef =
+          patientsCollection.doc(userCredential.user!.uid);
+
+// Set the data for the main document
+      await patientDocRef.set({
         'type': "Patient",
         'first name': firstName.text,
         'last name': lastName.text,
@@ -70,8 +77,24 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
         'mother birthday': motherBdayController.text,
         'uid': userCredential.user!.uid,
         'category': "Well-Baby Record",
-        'email': emailController.text
+        'email': emailController.text,
       });
+
+// Reference the subcollection within the main document
+      CollectionReference subcollectionRef =
+          patientDocRef.collection('vaccines');
+
+// Create a new document in the subcollection with auto-generated document ID
+      DocumentReference subDocRef = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "BCG",
+          "vaccine description": "Vaccine against tuberculosis",
+          "vaccine date": birthdateController.text
+        },
+      );
+      String subDocId = subDocRef.id;
+      await subDocRef.update({"vaccine uid": subDocId});
 
       Fluttertoast.showToast(
         msg: "Success!",
@@ -137,7 +160,7 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
       'mother address': motherAddress.text,
       'mother birthday': motherBdayController.text,
       'uid': userCredential.user!.uid,
-      'category': "Well-Baby Record"
+      'category': "Well-Baby Record",
     });
   }
 

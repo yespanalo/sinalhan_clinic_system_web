@@ -30,6 +30,23 @@ class _patientProfileWellbabyState extends State<patientProfileWellbaby> {
     return '$age yrs, ';
   }
 
+  Future<QuerySnapshot<Map<String, dynamic>>> fetchVaccineDocuments() async {
+    // Reference the "patients" collection
+    CollectionReference patientsCollection =
+        FirebaseFirestore.instance.collection('patients');
+
+    // Reference the specific patient document
+    DocumentReference patientDocRef = patientsCollection.doc(widget.uid);
+
+    // Reference the "vaccine" subcollection within the patient document
+    CollectionReference vaccineCollection =
+        patientDocRef.collection('vaccines');
+
+    // Fetch all the documents in the "vaccine" subcollection
+    return vaccineCollection.get()
+        as Future<QuerySnapshot<Map<String, dynamic>>>;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,7 +272,9 @@ class _patientProfileWellbabyState extends State<patientProfileWellbaby> {
                                               SizedBox(
                                                 height: 40,
                                               ),
-                                              Informations(data['birthdate'],
+                                              Informations(
+                                                  _formatBirthdate(
+                                                      data['birthdate']),
                                                   "Birthdate"),
                                             ],
                                           ),
@@ -277,8 +296,9 @@ class _patientProfileWellbabyState extends State<patientProfileWellbaby> {
                                               SizedBox(
                                                 height: 40,
                                               ),
-                                              Informations(data['mother name'],
-                                                  "Mother's Name"),
+                                              Informations(
+                                                  data['gender'].toString(),
+                                                  "Gender")
                                             ],
                                           ),
                                           Column(
@@ -296,19 +316,109 @@ class _patientProfileWellbabyState extends State<patientProfileWellbaby> {
                                                       data['mother birthday']),
                                                   "Mother's Age"),
                                               SizedBox(height: 40),
-                                              Informations(
-                                                  data['gender'].toString(),
-                                                  "Gender")
+                                              Informations(data['mother name'],
+                                                  "Mother's Name"),
                                             ],
                                           ),
                                         ],
                                       ),
+                                      SizedBox(
+                                        height: 50,
+                                      ),
+                                      TextButton(
+                                          onPressed: () async {
+                                            // await generatePDF(data["uid"]);
+                                            // print('PDF generated');
+                                          },
+                                          child: Text("Download PDF"))
                                     ],
                                   ),
                                 ),
                                 SizedBox(
-                                  height: 50,
-                                )
+                                  height: 20,
+                                ),
+                                Divider(
+                                  color: secondaryaccent,
+                                  thickness: 2,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Container(
+                                  padding: EdgeInsets.only(left: 50, right: 50),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Vaccine Check List",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.5,
+                                            wordSpacing: 5.0),
+                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Container(
+                                        height: 500,
+                                        child: FutureBuilder<
+                                            QuerySnapshot<
+                                                Map<String, dynamic>>>(
+                                          future: fetchVaccineDocuments(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              // While data is being fetched, display a loading indicator
+                                              return CircularProgressIndicator();
+                                            } else if (snapshot.hasError) {
+                                              // If an error occurs during fetching, display an error message
+                                              return Text(
+                                                  'Error: ${snapshot.error}');
+                                            } else if (snapshot.hasData) {
+                                              // If data is successfully fetched, display the documents
+                                              List<
+                                                      QueryDocumentSnapshot<
+                                                          Map<String, dynamic>>>
+                                                  vaccineDocuments =
+                                                  snapshot.data!.docs;
+                                              return ListView.builder(
+                                                itemCount:
+                                                    vaccineDocuments.length,
+                                                itemBuilder: (context, index) {
+                                                  // Access the data of each document
+                                                  Map<String, dynamic> data =
+                                                      vaccineDocuments[index]
+                                                          .data();
+                                                  // Process the data as needed and display it
+                                                  return ListTile(
+                                                    title: Container(
+                                                      child: Row(
+                                                        children: [
+                                                          Text(data[
+                                                              'vaccine name']),
+                                                          Text(data[
+                                                              'vaccine date'])
+                                                        ],
+                                                      ),
+                                                    ),
+
+                                                    // ... Other fields and widgets for displaying the data
+                                                  );
+                                                },
+                                              );
+                                            } else {
+                                              // If no data is available, display a message
+                                              return Text(
+                                                  'No documents found.');
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),

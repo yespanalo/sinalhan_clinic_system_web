@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/login/login.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/wellbabyform.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
 void main() async {
@@ -30,6 +31,8 @@ class MyApp extends StatelessWidget {
       ),
 
       home: LoginPage(),
+
+      // home: patientProfileWellbaby(uid: "pwSGoFRoYYPjtT4F3TpXzwWnApL2"),
 
       //home: IndividualPatientRecordForm(),
       // home: WellBabyRecordForm(),
