@@ -85,16 +85,151 @@ class _WellBabyRecordFormState extends State<WellBabyRecordForm> {
           patientDocRef.collection('vaccines');
 
 // Create a new document in the subcollection with auto-generated document ID
-      DocumentReference subDocRef = await subcollectionRef.add(
+      DocumentReference BCG = await subcollectionRef.add(
         {
           "vaccine uid": "",
           "vaccine name": "BCG",
           "vaccine description": "Vaccine against tuberculosis",
-          "vaccine date": birthdateController.text
+          "vaccine date": ""
         },
       );
-      String subDocId = subDocRef.id;
-      await subDocRef.update({"vaccine uid": subDocId});
+      String subDocId = BCG.id;
+      await BCG.update({"vaccine uid": subDocId});
+
+      DocumentReference Hepatitis = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "Hepatitis B",
+          "vaccine description": "Vaccine that prevents hepatitis B",
+          "vaccine date": ""
+        },
+      );
+      String hepatitisDocID = Hepatitis.id;
+      await Hepatitis.update({"vaccine uid": hepatitisDocID});
+
+      DocumentReference PentavalentOne = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "Pentavalent Vaccine 1",
+          "vaccine description":
+              "Provides protection to a child from 5 life-threatening diseases.",
+          "vaccine date": ""
+        },
+      );
+      String pentavalentOneDocID = PentavalentOne.id;
+      await PentavalentOne.update({"vaccine uid": pentavalentOneDocID});
+
+      DocumentReference PentavalentTwo = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "Pentavalent Vaccine 2",
+          "vaccine description":
+              "Provides protection to a child from 5 life-threatening diseases.",
+          "vaccine date": ""
+        },
+      );
+      String pentavalentTwoDocID = PentavalentTwo.id;
+      await PentavalentTwo.update({"vaccine uid": pentavalentTwoDocID});
+
+      DocumentReference PentavalentThree = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "Pentavalent Vaccine 3",
+          "vaccine description":
+              "Provides protection to a child from 5 life-threatening diseases.",
+          "vaccine date": ""
+        },
+      );
+      String pentavalentThreeDocID = PentavalentThree.id;
+      await PentavalentThree.update({"vaccine uid": pentavalentThreeDocID});
+
+      List<Map<String, dynamic>> vaccineDataPolio = [
+        {
+          "vaccine name": "Oral Polio Vaccine 1",
+          "vaccine description": "Vaccines used to prevent poliomyelitis",
+        },
+        {
+          "vaccine name": "Oral Polio Vaccine 2",
+          "vaccine description": "Vaccines used to prevent poliomyelitis",
+        },
+        {
+          "vaccine name": "Oral Polio Vaccine 3",
+          "vaccine description": "Vaccines used to prevent poliomyelitis",
+        },
+      ];
+
+      for (int i = 0; i < vaccineDataPolio.length; i++) {
+        DocumentReference vaccineDocRef = await subcollectionRef.add({
+          "vaccine uid": "",
+          "vaccine name": vaccineDataPolio[i]["vaccine name"],
+          "vaccine description": vaccineDataPolio[i]["vaccine description"],
+          "vaccine date": ""
+        });
+
+        String vaccineDocID = vaccineDocRef.id;
+        await vaccineDocRef.update({"vaccine uid": vaccineDocID});
+      }
+
+      DocumentReference InactivatedPolioVaccine = await subcollectionRef.add(
+        {
+          "vaccine uid": "",
+          "vaccine name": "Inactivated Polio Vaccine",
+          "vaccine description": "Vaccines used to prevent poliomyelitis",
+          "vaccine date": ""
+        },
+      );
+      String inactivatedPolioDocID = InactivatedPolioVaccine.id;
+      await InactivatedPolioVaccine.update(
+          {"vaccine uid": inactivatedPolioDocID});
+
+      List<Map<String, dynamic>> PneumococcalConjugateVaccine = [
+        {
+          "vaccine name": "PCV 1",
+          "vaccine description":
+              "Vaccines against disease caused by the bacterium Streptococcus pneumoniae.",
+        },
+        {
+          "vaccine name": "PCV 2",
+          "vaccine description":
+              "Vaccines against disease caused by the bacterium Streptococcus pneumoniae.",
+        },
+      ];
+
+      for (int i = 0; i < PneumococcalConjugateVaccine.length; i++) {
+        DocumentReference vaccineDocRef = await subcollectionRef.add({
+          "vaccine uid": "",
+          "vaccine name": PneumococcalConjugateVaccine[i]["vaccine name"],
+          "vaccine description": PneumococcalConjugateVaccine[i]
+              ["vaccine description"],
+          "vaccine date": ""
+        });
+
+        String vaccineDocID = vaccineDocRef.id;
+        await vaccineDocRef.update({"vaccine uid": vaccineDocID});
+      }
+
+      List<Map<String, dynamic>> MeaslesMumpsRubella = [
+        {
+          "vaccine name": "Measles,Mumps,Rubella 1",
+          "vaccine description": "Vaccines against Measles,Mumps,Rubella",
+        },
+        {
+          "vaccine name": "Measles,Mumps,Rubella 2",
+          "vaccine description": "Vaccines against Measles,Mumps,Rubella",
+        },
+      ];
+
+      for (int i = 0; i < MeaslesMumpsRubella.length; i++) {
+        DocumentReference vaccineDocRef = await subcollectionRef.add({
+          "vaccine uid": "",
+          "vaccine name": MeaslesMumpsRubella[i]["vaccine name"],
+          "vaccine description": MeaslesMumpsRubella[i]["vaccine description"],
+          "vaccine date": ""
+        });
+
+        String vaccineDocID = vaccineDocRef.id;
+        await vaccineDocRef.update({"vaccine uid": vaccineDocID});
+      }
 
       Fluttertoast.showToast(
         msg: "Success!",
