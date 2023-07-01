@@ -9,6 +9,7 @@ import 'package:sinalhan_clinic_system_web/constants.dart';
 import 'package:sinalhan_clinic_system_web/function/authFunctions.dart';
 import 'package:sinalhan_clinic_system_web/home.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
+import 'package:sinalhan_clinic_system_web/patient/WellBabyHomePage.dart';
 
 import '../patient/PatientHomePage.dart';
 
@@ -247,7 +248,7 @@ class _LoginPageState extends State<LoginPage> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                patientProfileWellbaby(
+                                                PatientHomePageWellBaby(
                                               uid: data!['uid'],
                                             ),
                                           ),

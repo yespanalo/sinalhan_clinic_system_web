@@ -8,6 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:sinalhan_clinic_system_web/categorySelection.dart';
 import 'package:sinalhan_clinic_system_web/constants.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfilePreNatal.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
@@ -346,6 +347,13 @@ class _MyDataTableSource extends DataTableSource {
                     Navigator.of(_context).push(
                       MaterialPageRoute(
                           builder: (_) => patientProfileWellbaby(
+                                uid: data['uid'].toString(),
+                              )),
+                    );
+                  } else if (data['category'] == "Pre-Natal Record") {
+                    Navigator.of(_context).push(
+                      MaterialPageRoute(
+                          builder: (_) => PatientProfilePreNatal(
                                 uid: data['uid'].toString(),
                               )),
                     );
