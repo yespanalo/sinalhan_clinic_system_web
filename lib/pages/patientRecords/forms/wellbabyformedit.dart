@@ -60,16 +60,24 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
   List<String> genderList = <String>['Male', 'Female'];
   late String genderDropdownValue = genderList.first;
   bool isMale = true;
+  late String? podValue = formData!['place of delivery'];
 
-  String? podValue;
-  String? todValue;
-  String? abValue;
+  late String? todValue = formData!['type of delivery'];
+  late String? abValue = formData!['attended by'];
+  late TextEditingController birthWeightController;
+  late TextEditingController birthLengthController;
 
   var _text = '';
 
   @override
   Widget build(BuildContext context) {
     if (formData != null) {
+      TextEditingController emailController = new TextEditingController()
+        ..text = formData!['email'];
+      birthWeightController = new TextEditingController()
+        ..text = formData!['weight'];
+      birthLengthController = new TextEditingController()
+        ..text = formData!['length'];
       TextEditingController firstName = new TextEditingController()
         ..text = formData!['first name'];
       TextEditingController middleName = new TextEditingController()
@@ -77,74 +85,88 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
 
       TextEditingController lastName = new TextEditingController()
         ..text = formData!['last name'];
+      TextEditingController birthdateController = new TextEditingController()
+        ..text = formData!['birthdate'];
 
-      TextEditingController emailController = new TextEditingController();
-      TextEditingController passwordController = new TextEditingController();
-      TextEditingController birthdateController = new TextEditingController();
-      TextEditingController birthWeightController = new TextEditingController();
-      TextEditingController birthLengthController = new TextEditingController();
+      TextEditingController motherName = new TextEditingController()
+        ..text = formData!['mother name'];
+      TextEditingController motherAge = new TextEditingController()
+        ..text = formData!['mother age'];
+      TextEditingController motherAddress = new TextEditingController()
+        ..text = formData!['mother address'];
+      TextEditingController motherBdayController = new TextEditingController()
+        ..text = formData!['mother birthday'];
+      TextEditingController motherMobileNumber = new TextEditingController()
+        ..text = formData!['contact number'];
+      TextEditingController passwordController = new TextEditingController()
+        ..text = formData!['email'];
+
       TextEditingController doneDateController = new TextEditingController();
       TextEditingController nbsrController = new TextEditingController();
-      TextEditingController motherName = new TextEditingController();
-      TextEditingController motherMobileNumber = new TextEditingController();
-      TextEditingController motherAge = new TextEditingController();
-      TextEditingController motherAddress = new TextEditingController();
-      TextEditingController motherBdayController = new TextEditingController();
-      // Future<bool> updateIndividualPatient(String uid) async {
-      //   if (firstName.text.isEmpty ||
-      //       lastname.text.isEmpty ||
-      //       contactNumber.text.isEmpty ||
-      //       birthdateController.text.isEmpty ||
-      //       motherName.text.isEmpty ||
-      //       fatherName.text.isEmpty) {
-      //     // Show an error message or perform necessary actions for handling empty fields
-      //     Fluttertoast.showToast(
-      //       msg: "Please fill in all required fields",
-      //       gravity: ToastGravity.CENTER,
-      //       timeInSecForIosWeb: 2,
-      //       backgroundColor: Colors.red,
-      //       textColor: Colors.white,
-      //       fontSize: 16.0,
-      //     );
-      //     return false;
-      //   } else {
-      //     try {
-      //       await FirebaseFirestore.instance
-      //           .collection('patients')
-      //           .doc(uid)
-      //           .update({
-      //         'type': "Patient",
-      //         'first name': firstName.text,
-      //         'last name': lastname.text,
-      //         'middle name': middlename.text,
-      //         'category': "Individual Patient Record",
-      //         'email': emailController.text,
-      //         'contact number': contactNumber.text,
-      //         'address': streetController.text,
-      //         'gender': genderDropdownValue,
-      //         'birthdate': birthdateController.text,
-      //         'civil status': CivilStatusDropdownValue,
-      //         'educational attainment': EducationDropdownValue,
-      //         'religion': religionController.text,
-      //         'occupation': occupationController.text,
-      //         'mothers name': motherName.text,
-      //         'fathers name': fatherName.text,
-      //       });
-      //       Fluttertoast.showToast(
-      //         msg: "Success!",
-      //         gravity: ToastGravity.CENTER,
-      //         timeInSecForIosWeb: 2,
-      //         backgroundColor: Colors.red,
-      //         textColor: Colors.white,
-      //         fontSize: 16.0,
-      //       );
-      //       return true;
-      //     } catch (error) {
-      //       print('Error updating individual patient: $error');
-      //       return false; // Return false to indicate failure
-      //     }
-      //   }
-      // }
+
+      Future<bool> updateWellBabyPatient(String uid) async {
+        if (firstName.text.isEmpty ||
+            lastName.text.isEmpty ||
+            motherMobileNumber.text.isEmpty ||
+            birthdateController.text.isEmpty ||
+            middleName.text.isEmpty ||
+            motherName.text.isEmpty ||
+            motherAge.text.isEmpty ||
+            motherBdayController.text.isEmpty ||
+            motherAddress.text.isEmpty ||
+            birthLengthController.text.isEmpty ||
+            birthWeightController.text.isEmpty) {
+          // Show an error message or perform necessary actions for handling empty fields
+          Fluttertoast.showToast(
+            msg: "Please fill in all required fields",
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          return false;
+        } else {
+          try {
+            await FirebaseFirestore.instance
+                .collection('patients')
+                .doc(uid)
+                .update({
+              'type': "Patient",
+              'first name': firstName.text,
+              'last name': lastName.text,
+              'middle name': middleName.text,
+              'gender': genderDropdownValue,
+              'birthdate': birthdateController.text,
+              'weight': birthWeightController.text,
+              'length': birthLengthController.text,
+              'place of delivery': podValue,
+              'type of delivery': todValue,
+              'attended by': abValue,
+              'mother name': motherName.text,
+              'mother age': motherAddress.text,
+              'contact number': motherMobileNumber.text,
+              'mother address': motherAddress.text,
+              'mother birthday': motherBdayController.text,
+              'category': "Well-Baby Record",
+              'email': emailController.text,
+            });
+
+            Fluttertoast.showToast(
+              msg: "Success!",
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 2,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
+            return true;
+          } catch (error) {
+            print('Error updating individual patient: $error');
+            return false; // Return false to indicate failure
+          }
+        }
+      }
 
       return Scaffold(
         body: SafeArea(
@@ -194,45 +216,45 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
                           email(
                             emailController: emailController,
                           ),
-                          Container(
-                            margin: EdgeInsets.only(
-                                top: 10, bottom: 10, left: 30, right: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Enter Password",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 330,
-                                  child: TextField(
-                                    obscureText: true,
-                                    controller: passwordController,
-                                    decoration: InputDecoration(
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        )),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Container(
+                          //   margin: EdgeInsets.only(
+                          //       top: 10, bottom: 10, left: 30, right: 20),
+                          //   child: Column(
+                          //     crossAxisAlignment: CrossAxisAlignment.start,
+                          //     children: [
+                          //       Text(
+                          //         "Enter Password",
+                          //         style: TextStyle(
+                          //             fontWeight: FontWeight.w500,
+                          //             fontSize: 16),
+                          //       ),
+                          //       SizedBox(
+                          //         height: 10,
+                          //       ),
+                          //       Container(
+                          //         height: 40,
+                          //         width: 330,
+                          //         child: TextField(
+                          //           obscureText: true,
+                          //           //controller: passwordController,
+                          //           decoration: InputDecoration(
+                          //               enabledBorder: OutlineInputBorder(
+                          //                 borderSide: const BorderSide(
+                          //                     width: 0.5, color: Colors.grey),
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(5),
+                          //               ),
+                          //               focusedBorder: OutlineInputBorder(
+                          //                 borderSide: const BorderSide(
+                          //                     width: 0.5, color: Colors.grey),
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(5),
+                          //               )),
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
                           Header(
                             text: "General Patient Information",
                           ),
@@ -369,12 +391,11 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
                                 height: 50,
                                 child: TextButton(
                                   onPressed: () async {
-                                    // bool addWellBabySuccess =
-                                    //     await updateIndividualPatient(
-                                    //         widget.uid);
-                                    // if (addWellBabySuccess) {
-                                    //   Navigator.pop(context);
-                                    // }
+                                    bool addWellBabySuccess =
+                                        await updateWellBabyPatient(widget.uid);
+                                    if (addWellBabySuccess) {
+                                      Navigator.pop(context);
+                                    }
                                   },
                                   style: ButtonStyle(
                                     shape: MaterialStateProperty.all<
@@ -646,7 +667,7 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
             height: 40,
             width: 330,
             child: TextField(
-              // controller: birthLengthController,
+              controller: birthLengthController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
@@ -687,7 +708,7 @@ class _WellBabyRecordFormEditState extends State<WellBabyRecordFormEdit> {
             height: 40,
             width: 330,
             child: TextField(
-              // controller: birthWeightController,
+              controller: birthWeightController,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly
               ], //
