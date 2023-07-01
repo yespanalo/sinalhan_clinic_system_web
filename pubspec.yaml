@@ -50,6 +50,7 @@ dependencies:
   pdf: ^3.8.4
   table_calendar: ^3.0.8
   syncfusion_flutter_calendar: ^20.3.61
+  flutter_datetime_picker: ^1.5.1
 
 dev_dependencies:
   flutter_test:
