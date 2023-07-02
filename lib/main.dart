@@ -7,6 +7,7 @@ import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/individual
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/prenatalform.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/wellbabyform.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/wellbabyformedit.dart';
+import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfilePreNatal.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfileWellbaby.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
 
@@ -33,12 +34,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
 
-      //home: LoginPage(),
-
+      home: LoginPage(),
+      // home: PatientProfilePreNatal(uid: "B1ryqxZQEEUsPUpxRZGp7JreGCD3"),
       // home: patientProfileWellbaby(uid: "pwSGoFRoYYPjtT4F3TpXzwWnApL2"),
 
       //home: IndividualPatientRecordForm(),
-      home: PreNatalRecordForm(),
+      // home: PreNatalRecordForm(),
 
       // home: WellBabyRecordForm(),
       // home: WellBabyRecordFormEdit(

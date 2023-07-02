@@ -914,21 +914,27 @@ class MotherWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
-                    height: 40,
+                    constraints: BoxConstraints(
+                      maxWidth: 215, // Set the maximum width of the container
+                    ),
                     child: TextField(
                       controller: motherName,
                       decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -947,21 +953,27 @@ class MotherWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
-                    height: 40,
+                    constraints: BoxConstraints(
+                      maxWidth: 215, // Set the maximum width of the container
+                    ),
                     child: TextField(
                       controller: motherAge,
                       decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -981,21 +993,27 @@ class MotherWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 215,
-                    height: 40,
+                    constraints: BoxConstraints(
+                      maxWidth: 215, // Set the maximum width of the container
+                    ),
                     child: TextField(
                       controller: motherAddress,
                       decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            width: 0.5,
+                            color: Colors.grey,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(

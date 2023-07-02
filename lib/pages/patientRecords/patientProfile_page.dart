@@ -1700,26 +1700,26 @@ class _ScheduleVisitDialogState extends State<ScheduleVisitDialog> {
                         SizedBox(
                           height: 10,
                         ),
-                        if (widget.patientCategory ==
-                            "Individual Patient Record")
-                          Container(
-                            child:
-                                DateSelectionContainerIndividualPatientRecord(
-                              onDateSelected: _handleDateSelected,
-                            ),
+                        Container(
+                          child: DateSelectionContainerIndividualPatientRecord(
+                            onDateSelected: _handleDateSelected,
                           ),
-                        if (widget.patientCategory == "Well-Baby Record")
-                          Container(
-                            child: DateSelectionContainerWellBabyRecord(
-                              onDateSelected: _handleDateSelected,
-                            ),
-                          ),
-                        if (widget.patientCategory == "Pre-Natal Record")
-                          Container(
-                            child: DateSelectionContainerPrenatalRecord(
-                              onDateSelected: _handleDateSelected,
-                            ),
-                          ),
+                        ),
+                        // if (widget.patientCategory ==
+                        //     "Individual Patient Record")
+
+                        // if (widget.patientCategory == "Well-Baby Record")
+                        //   Container(
+                        //     child: DateSelectionContainerWellBabyRecord(
+                        //       onDateSelected: _handleDateSelected,
+                        //     ),
+                        //   ),
+                        // if (widget.patientCategory == "Pre-Natal Record")
+                        //   Container(
+                        //     child: DateSelectionContainerPrenatalRecord(
+                        //       onDateSelected: _handleDateSelected,
+                        //     ),
+                        //   ),
                       ]),
                 ),
               ],
@@ -1936,7 +1936,7 @@ class _DateSelectionContainerPrenatalRecordState
       for (int j = 1; j <= 7; j++) {
         DateTime date = currentDate.add(Duration(days: i * 7 + j));
 
-        if (date.weekday == DateTime.thursday) {
+        if (date.weekday == DateTime.tuesday) {
           String formattedDate = DateFormat('MMMM d, y').format(date);
           String identifier = DateFormat('yyyy-MM-dd').format(date);
           items.add(

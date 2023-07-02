@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/forms/wellbabyformedit.dart';
 import 'package:sinalhan_clinic_system_web/pages/patientRecords/patientProfile_page.dart';
+import 'package:sweetsheet/sweetsheet.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../constants copy.dart';
@@ -20,14 +22,19 @@ import 'package:flutter/services.dart' as flutterServices;
 import 'dart:html' as html;
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
-class PatientProfilePreNatal extends StatefulWidget {
-  const PatientProfilePreNatal({required this.uid, Key? key}) : super(key: key);
+import '../login/login.dart';
+
+class PatientHomeProfilePreNatal extends StatefulWidget {
+  const PatientHomeProfilePreNatal({required this.uid, Key? key})
+      : super(key: key);
   final String uid;
   @override
-  State<PatientProfilePreNatal> createState() => _PatientProfilePreNatalState();
+  State<PatientHomeProfilePreNatal> createState() =>
+      _PatientHomeProfilePreNatalState();
 }
 
-class _PatientProfilePreNatalState extends State<PatientProfilePreNatal> {
+class _PatientHomeProfilePreNatalState
+    extends State<PatientHomeProfilePreNatal> {
   TextEditingController diagnosis = new TextEditingController();
   TextEditingController recommend = new TextEditingController();
   TextEditingController visitDateController = new TextEditingController();
@@ -182,6 +189,8 @@ class _PatientProfilePreNatalState extends State<PatientProfilePreNatal> {
     return formatter.format(now);
   }
 
+  final SweetSheet _sweetSheet = SweetSheet();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,7 +221,6 @@ class _PatientProfilePreNatalState extends State<PatientProfilePreNatal> {
                       color: Colors.white,
                       child: Row(
                         children: [
-                          BackButton(),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -232,6 +240,39 @@ class _PatientProfilePreNatalState extends State<PatientProfilePreNatal> {
                                     color: Colors.grey),
                               ),
                             ],
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              _sweetSheet.show(
+                                context: context,
+                                title: Text("Confirmation"),
+                                description:
+                                    Text("Are you sure you want to sign out?"),
+                                color: SweetSheetColor.SUCCESS,
+                                negative: SweetSheetAction(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+
+                                    FirebaseAuth.instance.signOut();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LoginPage(),
+                                      ),
+                                    );
+                                  },
+                                  title: 'CONFIRM',
+                                ),
+                                positive: SweetSheetAction(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  title: 'CANCEL',
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.logout),
                           ),
                         ],
                       ),
@@ -911,23 +952,23 @@ class CompulsaryVisitList extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {
-          Future.delayed(Duration(milliseconds: 100)).then((value) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Builder(builder: (context) {
-                    return CompulsaryUpcomingVisitDialog(
-                      patientId: patientId,
-                      visitId: upcomingVisitData['visit id'],
-                      visitDate: formattedDate,
-                      patientName: patientName,
-                      Diagnosiscontroller: diagnosis,
-                      Recommendationcontroller: recommend,
-                      visitDateTime: visitTimestamp,
-                    );
-                  });
-                });
-          });
+          // Future.delayed(Duration(milliseconds: 100)).then((value) {
+          //   showDialog(
+          //       context: context,
+          //       builder: (BuildContext context) {
+          //         return Builder(builder: (context) {
+          //           return CompulsaryUpcomingVisitDialog(
+          //             patientId: patientId,
+          //             visitId: upcomingVisitData['visit id'],
+          //             visitDate: formattedDate,
+          //             patientName: patientName,
+          //             Diagnosiscontroller: diagnosis,
+          //             Recommendationcontroller: recommend,
+          //             visitDateTime: visitTimestamp,
+          //           );
+          //         });
+          //       });
+          // });
         },
         child: Container(
           padding: const EdgeInsets.only(left: 50, right: 50),

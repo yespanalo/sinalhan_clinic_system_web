@@ -41,13 +41,21 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
   TextEditingController preterm = new TextEditingController();
   TextEditingController abortion = new TextEditingController();
   TextEditingController living = new TextEditingController();
+  TextEditingController contactNumberController = new TextEditingController();
 
   var _text = "";
 
   Future<bool> addPreNatalPatient() async {
     if (firstName.text.isEmpty ||
         middleName.text.isEmpty ||
-        lastName.text.isEmpty) {
+        lastName.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty ||
+        address.text.isEmpty ||
+        lmpController.text.isEmpty ||
+        birthdateController.text.isEmpty ||
+        edcController.text.isEmpty ||
+        aogController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "Please fill in all required fields",
         gravity: ToastGravity.CENTER,
@@ -71,13 +79,12 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
         'first name': firstName.text,
         'last name': lastName.text,
         'middle name': middleName.text,
-        'category': "Pre Natal Record",
+        'category': "Pre-Natal Record",
         'email': emailController.text,
-        'password': passwordController.text,
-        'age': age.text,
+        'contact number': contactNumberController.text,
         'husband name': husband.text,
         'address': address.text,
-        'birthday': birthdateController.text,
+        'birthdate': birthdateController.text,
         'last mens period': lmpController.text,
         'estimated date of confinement': edcController.text,
         'assessment of gestational date': aogController.text,
@@ -86,6 +93,7 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
         'preterm': preterm.text,
         'abortion': abortion.text,
         'living': living.text,
+        'uid': userCredential.user!.uid
       });
 
       Fluttertoast.showToast(
@@ -151,10 +159,51 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                             Divider(),
                           ],
                         ),
+                        Header(text: "Sign up with email"),
+                        email(
+                          emailController: emailController,
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(
+                              top: 10, bottom: 10, left: 30, right: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Password",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w500, fontSize: 16),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                height: 40,
+                                width: 330,
+                                child: TextField(
+                                  obscureText: true,
+                                  controller: passwordController,
+                                  decoration: InputDecoration(
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            width: 0.5, color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            width: 0.5, color: Colors.grey),
+                                        borderRadius: BorderRadius.circular(5),
+                                      )),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Header(
                           text: "General Patient Information",
                         ),
                         GeneralInformationWidget(
+                            contactNumberController: contactNumberController,
                             firstName: firstName,
                             middleName: middleName,
                             lastName: lastName,
@@ -333,10 +382,13 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                                   height: 40,
                                   width: 330,
                                   child: TextField(
-                                    readOnly: true,
-                                    onChanged: (text) => setState(() => _text),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d{1,3}$')),
+                                    ],
                                     controller: aogController,
                                     decoration: InputDecoration(
+                                        hintText: "Number of week of pregnancy",
                                         enabledBorder: OutlineInputBorder(
                                           borderSide: const BorderSide(
                                               width: 0.5, color: Colors.grey),
@@ -349,18 +401,6 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                                           borderRadius:
                                               BorderRadius.circular(5),
                                         )),
-                                    onTap: () async {
-                                      DateTime date = DateTime(1900);
-                                      FocusScope.of(context)
-                                          .requestFocus(new FocusNode());
-                                      date = (await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(2021),
-                                          firstDate: DateTime(1900),
-                                          lastDate: DateTime(2100)))!;
-                                      aogController.text =
-                                          DateFormat('yyy-MM-dd').format(date);
-                                    },
                                   ),
                                 ),
                               ]),
@@ -371,10 +411,73 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
                             term: term,
                             preterm: preterm,
                             abortion: abortion,
-                            living: living)
+                            living: living),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 20, bottom: 10, left: 20, right: 20),
+                              width: 370,
+                              height: 50,
+                              child: TextButton(
+                                onPressed: () async {
+                                  bool addPreNatalSuccess =
+                                      await addPreNatalPatient();
+                                  if (addPreNatalSuccess) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          secondaryaccent),
+                                ),
+                                child: Text(
+                                  "Add",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                  top: 20, bottom: 10, left: 20, right: 20),
+                              width: 370,
+                              height: 50,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                style: ButtonStyle(
+                                  shape: MaterialStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.grey),
+                                ),
+                                child: Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               )
             ],
@@ -393,6 +496,7 @@ class GeneralInformationWidget extends StatelessWidget {
       required this.lastName,
       required this.age,
       required this.husband,
+      required this.contactNumberController,
       required this.address})
       : super(key: key);
 
@@ -402,6 +506,7 @@ class GeneralInformationWidget extends StatelessWidget {
   final TextEditingController age;
   final TextEditingController husband;
   final TextEditingController address;
+  final TextEditingController contactNumberController;
 
   @override
   Widget build(BuildContext context) {
@@ -446,7 +551,10 @@ class GeneralInformationWidget extends StatelessWidget {
                   Text(
                     "First Name",
                     style: TextStyle(fontSize: 11),
-                  )
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
                 ],
               ),
               Column(
@@ -479,7 +587,10 @@ class GeneralInformationWidget extends StatelessWidget {
                   Text(
                     "Middle Name",
                     style: TextStyle(fontSize: 11),
-                  )
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
                 ],
               ),
               Column(
@@ -512,7 +623,10 @@ class GeneralInformationWidget extends StatelessWidget {
                   Text(
                     "Last Name",
                     style: TextStyle(fontSize: 11),
-                  )
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
                 ],
               ),
             ],
@@ -520,39 +634,6 @@ class GeneralInformationWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: age,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Age",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
-              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -593,9 +674,40 @@ class GeneralInformationWidget extends StatelessWidget {
                     width: 215,
                     height: 40,
                     child: TextField(
+                      controller: contactNumberController,
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d{0,11}$')),
                       ],
+                      decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                width: 0.5, color: Colors.grey),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                width: 0.5, color: Colors.grey),
+                            borderRadius: BorderRadius.circular(5),
+                          )),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    "Contact Number",
+                    style: TextStyle(fontSize: 11),
+                  )
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 215,
+                    height: 40,
+                    child: TextField(
                       controller: address,
                       decoration: InputDecoration(
                           enabledBorder: OutlineInputBorder(
@@ -651,181 +763,188 @@ class GTPALWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 10,
+            height: 20,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: gravida,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Gravida",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
+              Container(
+                width: 215,
+                height: 40,
+                child: TextField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}$')),
+                  ],
+                  controller: gravida,
+                  decoration: InputDecoration(
+                      hintText: "Number of pregnancyr",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: term,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Term",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
+              SizedBox(
+                height: 10,
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: preterm,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Preterm",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
-              ),
+              Text(
+                "Gravida",
+                style: TextStyle(fontSize: 11),
+              )
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          SizedBox(
+            height: 20,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: abortion,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Abortion",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
+              Container(
+                width: 215,
+                height: 40,
+                child: TextField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}$')),
+                  ],
+                  controller: preterm,
+                  decoration: InputDecoration(
+                      hintText: "Number of premature",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 215,
-                    height: 40,
-                    child: TextField(
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp('[a-zA-Z ]')),
-                      ],
-                      controller: living,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                width: 0.5, color: Colors.grey),
-                            borderRadius: BorderRadius.circular(5),
-                          )),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    "Living",
-                    style: TextStyle(fontSize: 11),
-                  )
-                ],
+              SizedBox(
+                height: 10,
               ),
+              Text(
+                "Preterm",
+                style: TextStyle(fontSize: 11),
+              )
+            ],
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 215,
+                height: 40,
+                child: TextField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}$')),
+                  ],
+                  controller: term,
+                  decoration: InputDecoration(
+                      hintText: "Number of full term",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "Full Term",
+                style: TextStyle(fontSize: 11),
+              )
+            ],
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 215,
+                height: 40,
+                child: TextField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}$')),
+                  ],
+                  controller: abortion,
+                  decoration: InputDecoration(
+                      hintText: "Number of abortion",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "Abortion",
+                style: TextStyle(fontSize: 11),
+              )
+            ],
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 215,
+                height: 40,
+                child: TextField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{1,3}$')),
+                  ],
+                  controller: living,
+                  decoration: InputDecoration(
+                      hintText: "Number of living children",
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(width: 0.5, color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      )),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "Living",
+                style: TextStyle(fontSize: 11),
+              )
             ],
           ),
         ],
@@ -859,6 +978,56 @@ class Header extends StatelessWidget {
             height: 10,
           ),
           Divider(),
+        ],
+      ),
+    );
+  }
+}
+
+class email extends StatelessWidget {
+  const email({Key? key, required this.emailController}) : super(key: key);
+
+  final TextEditingController emailController;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 10, left: 30, right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Enter email ",
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Container(
+            height: 40,
+            width: 330,
+            child: TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                  hintText: "example@example.com",
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 0.5, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(5),
+                  )),
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Text(
+            "example@example.com",
+            style: TextStyle(fontSize: 11),
+          ),
         ],
       ),
     );

@@ -260,7 +260,7 @@ Container IndividualPatientRecord(BuildContext context) {
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                     double columnSpacing = constraints.maxWidth /
-                        (8.7 + 1); // add 1 for the action column
+                        (10 + 1); // add 1 for the action column
 
                     return PaginatedDataTable(
                       columnSpacing: columnSpacing,
