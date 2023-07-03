@@ -55,7 +55,13 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
         lmpController.text.isEmpty ||
         birthdateController.text.isEmpty ||
         edcController.text.isEmpty ||
-        aogController.text.isEmpty) {
+        aogController.text.isEmpty ||
+        gravida.text.isEmpty ||
+        term.text.isEmpty ||
+        preterm.text.isEmpty ||
+        abortion.text.isEmpty ||
+        living.text.isEmpty ||
+        contactNumberController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: "Please fill in all required fields",
         gravity: ToastGravity.CENTER,
@@ -81,6 +87,7 @@ class _PreNatalRecordFormState extends State<PreNatalRecordForm> {
         'middle name': middleName.text,
         'category': "Pre-Natal Record",
         'email': emailController.text,
+        'password': passwordController.text,
         'contact number': contactNumberController.text,
         'husband name': husband.text,
         'address': address.text,
