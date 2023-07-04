@@ -35,13 +35,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
 
-      //home: LoginPage(),
+      home: LoginPage(),
       // home: PatientProfilePreNatal(uid: "B1ryqxZQEEUsPUpxRZGp7JreGCD3"),
       // home: patientProfileWellbaby(uid: "pwSGoFRoYYPjtT4F3TpXzwWnApL2"),
 
       //home: IndividualPatientRecordForm(),
       // home: PreNatalRecordForm(),
-      home: PreNatalFormEdit(uid: "B1ryqxZQEEUsPUpxRZGp7JreGCD3"),
+      // home: PreNatalFormEdit(uid: "B1ryqxZQEEUsPUpxRZGp7JreGCD3"),
 
       // home: WellBabyRecordForm(),
       // home: WellBabyRecordFormEdit(
