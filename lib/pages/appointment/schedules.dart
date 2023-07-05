@@ -95,31 +95,69 @@ class _SchedulesState extends State<Schedules> {
     });
   }
 
+  int IndividualpatientCount = 0;
+  int WellBabyCount = 0;
+  int PreNatalCount = 0;
+  int total = 0;
+
   Future<List<Map<String, dynamic>>> fetchInventoryData() async {
     QuerySnapshot medicineSnapshot =
         await FirebaseFirestore.instance.collection('patients').get();
 
     List<Map<String, dynamic>> inventoryData = [];
+    DateTime currentDate = DateTime.now();
 
+    // Calculate the start and end dates of the current week
+    DateTime startDate =
+        currentDate.subtract(Duration(days: currentDate.weekday));
+    DateTime endDate = startDate.add(Duration(days: 5));
     for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
-      String name = medicineDoc['first name'] + " " + medicineDoc['last name'];
-      String category = medicineDoc['category'];
+      String name = "";
+      String category = "";
 
       QuerySnapshot batchSnapshot =
           await medicineDoc.reference.collection('visit history').get();
       int totalQuantity = 0;
       String reasonOfVisit = "";
+      String visitDate = "";
 
       for (DocumentSnapshot batchDoc in batchSnapshot.docs) {
         // int quantity = batchDoc['quantity'];
         // totalQuantity += quantity;
-        reasonOfVisit = batchDoc['reason of visit'];
+
+        DateTime batchVisitDate = batchDoc['visit date']
+            .toDate(); // Assuming 'visit date' field is a Firestore Timestamp
+
+        if (batchVisitDate.isAfter(startDate) &&
+            batchVisitDate.isBefore(endDate)) {
+          name = medicineDoc['first name'] + " " + medicineDoc['last name'];
+          category = medicineDoc['category'];
+          reasonOfVisit = batchDoc['reason of visit'];
+
+          final DateFormat formatter = DateFormat('MMMM d, yyyy');
+          visitDate = formatter.format(batchVisitDate);
+
+          if (category == "Individual Patient Record") {
+            IndividualpatientCount++;
+          } else if (category == "Pre-Natal Record") {
+            PreNatalCount++;
+          } else {
+            WellBabyCount++;
+          }
+          total = IndividualpatientCount + PreNatalCount + WellBabyCount;
+
+          break; // Exit the inner loop if a valid visit date is found
+        }
       }
 
       Map<String, dynamic> inventoryItem = {
         'name': name,
         'category': category,
-        'reasonOfVisit': reasonOfVisit
+        'reasonOfVisit': reasonOfVisit,
+        'date': visitDate,
+        'individualCount': IndividualpatientCount,
+        'wellbabyCount': WellBabyCount,
+        'prenatalCount': PreNatalCount,
       };
 
       inventoryData.add(inventoryItem);
@@ -131,7 +169,11 @@ class _SchedulesState extends State<Schedules> {
   Future<void> generateAndDownloadInventorySummaryReport(
       List<Map<String, dynamic>> inventoryData) async {
     final pdf = await generateInventorySummaryReport(inventoryData);
-    downloadPdfReport(pdf, "inventory_summary_report.pdf");
+    downloadPdfReport(pdf, "TotalAppointment.pdf");
+    IndividualpatientCount = 0;
+    PreNatalCount = 0;
+    WellBabyCount = 0;
+    total = 0;
   }
 
   Future<pdfWidgets.Document> generateInventorySummaryReport(
@@ -152,33 +194,102 @@ class _SchedulesState extends State<Schedules> {
                   // pdfWidgets.Container(
                   //     width: 50, height: 50, child: headerImage),
                   pdfWidgets.SizedBox(width: 20),
-                  pdfWidgets.Column(
-                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
-                    children: [
-                      pdfWidgets.Container(
-                        child: pdfWidgets.Text(
-                          'Barangay Sinalhan Clinic',
-                          style: pdfWidgets.TextStyle(
-                            fontSize: 14.0,
+                  pdfWidgets.Row(children: [
+                    pdfWidgets.Column(
+                      crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                      children: [
+                        pdfWidgets.Container(
+                          child: pdfWidgets.Text(
+                            'Barangay Sinalhan Clinic',
+                            style: pdfWidgets.TextStyle(
+                              fontSize: 14.0,
+                            ),
                           ),
                         ),
-                      ),
+                        pdfWidgets.Text(
+                          'Inventory Summary Report',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: pdfWidgets.FontWeight.bold,
+                          ),
+                        ),
+                        pdfWidgets.Text(
+                          'Generated on: ${_getFormattedDate()}',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 10.0,
+                            color: PdfColors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                  pdfWidgets.Spacer(),
+                  pdfWidgets.Column(children: [
+                    pdfWidgets.Row(children: [
                       pdfWidgets.Text(
-                        'Inventory Summary Report',
+                        "Individual Patients: ",
                         style: pdfWidgets.TextStyle(
-                          fontSize: 20.0,
-                          fontWeight: pdfWidgets.FontWeight.bold,
+                          fontSize: 10.0,
+                          color: PdfColors.black,
                         ),
                       ),
                       pdfWidgets.Text(
-                        'Generated on: ${_getFormattedDate()}',
+                        IndividualpatientCount.toString(),
                         style: pdfWidgets.TextStyle(
                           fontSize: 10.0,
                           color: PdfColors.grey,
                         ),
                       ),
-                    ],
-                  ),
+                    ]),
+                    pdfWidgets.Row(children: [
+                      pdfWidgets.Text(
+                        "Pre-Natal Patients: ",
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        PreNatalCount.toString(),
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ]),
+                    pdfWidgets.Row(children: [
+                      pdfWidgets.Text(
+                        "Well-Baby Patients: ",
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        WellBabyCount.toString(),
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ]),
+                    pdfWidgets.Row(children: [
+                      pdfWidgets.Text(
+                        "Total: ",
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        total.toString(),
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ]),
+                  ]),
                 ]),
               ],
             ),
@@ -187,11 +298,12 @@ class _SchedulesState extends State<Schedules> {
         build: (context) => [
           pdfWidgets.Table.fromTextArray(
             data: [
-              ['Name', 'Category', 'Reason of Visit'],
+              ['Name', 'Category', 'Reason of Visit', 'Visit Date'],
               ...data.map((item) => [
                     item['name'],
                     item['category'],
                     item['reasonOfVisit'],
+                    item['date']
                   ]),
             ],
           ),
@@ -236,48 +348,6 @@ class _SchedulesState extends State<Schedules> {
           ),
           child: Column(
             children: [
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () async {
-                    List<Map<String, dynamic>> inventoryData =
-                        await fetchInventoryData();
-                    Future<void> pdf =
-                        generateAndDownloadInventorySummaryReport(
-                            inventoryData);
-                  },
-                  child: Container(
-                    width: 150,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: secondaryaccent, // Set the fill color to red
-                      borderRadius:
-                          BorderRadius.circular(10.0), // Set the border radius
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.book,
-                          color: Colors.white,
-                        ),
-                        Center(
-                          child: Text(
-                            "Inventory Summary Report",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight
-                                    .bold // Set the font color to white
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
               Container(
                 padding: const EdgeInsets.all(15.0),
                 color: Colors.white,
@@ -451,6 +521,48 @@ class _SchedulesState extends State<Schedules> {
                           textStyle: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () async {
+                          List<Map<String, dynamic>> inventoryData =
+                              await fetchInventoryData();
+                          Future<void> pdf =
+                              generateAndDownloadInventorySummaryReport(
+                                  inventoryData);
+                        },
+                        child: Container(
+                          width: 150,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: secondaryaccent, // Set the fill color to red
+                            borderRadius: BorderRadius.circular(
+                                10.0), // Set the border radius
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.book,
+                                color: Colors.white,
+                              ),
+                              Center(
+                                child: Text(
+                                  "Generate Weekly Visit List",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight
+                                          .bold // Set the font color to white
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
