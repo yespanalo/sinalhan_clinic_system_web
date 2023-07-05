@@ -123,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
 
                       TextField(
+                        maxLength: 45,
                         controller: email,
                         decoration: InputDecoration(
                             counterText: "",
@@ -150,6 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 5,
                       ),
                       TextField(
+                        maxLength: 45,
                         obscureText: isObscure,
                         controller: password,
                         decoration: InputDecoration(

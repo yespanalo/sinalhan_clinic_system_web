@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+import '../../constants copy.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:flutter/services.dart' as flutterServices;
+import 'dart:html' as html;
 
 class Schedules extends StatefulWidget {
   const Schedules({
@@ -87,6 +95,133 @@ class _SchedulesState extends State<Schedules> {
     });
   }
 
+  Future<List<Map<String, dynamic>>> fetchInventoryData() async {
+    QuerySnapshot medicineSnapshot =
+        await FirebaseFirestore.instance.collection('patients').get();
+
+    List<Map<String, dynamic>> inventoryData = [];
+
+    for (DocumentSnapshot medicineDoc in medicineSnapshot.docs) {
+      String name = medicineDoc['first name'] + " " + medicineDoc['last name'];
+      String category = medicineDoc['category'];
+
+      QuerySnapshot batchSnapshot =
+          await medicineDoc.reference.collection('visit history').get();
+      int totalQuantity = 0;
+      String reasonOfVisit = "";
+
+      for (DocumentSnapshot batchDoc in batchSnapshot.docs) {
+        // int quantity = batchDoc['quantity'];
+        // totalQuantity += quantity;
+        reasonOfVisit = batchDoc['reason of visit'];
+      }
+
+      Map<String, dynamic> inventoryItem = {
+        'name': name,
+        'category': category,
+        'reasonOfVisit': reasonOfVisit
+      };
+
+      inventoryData.add(inventoryItem);
+    }
+
+    return inventoryData;
+  }
+
+  Future<void> generateAndDownloadInventorySummaryReport(
+      List<Map<String, dynamic>> inventoryData) async {
+    final pdf = await generateInventorySummaryReport(inventoryData);
+    downloadPdfReport(pdf, "inventory_summary_report.pdf");
+  }
+
+  Future<pdfWidgets.Document> generateInventorySummaryReport(
+      List<Map<String, dynamic>> data) async {
+    final pdf = pdfWidgets.Document();
+    // final headerImage = await addImage(pdf, 'images/sinalhanLogo.png');
+
+    pdf.addPage(
+      pdfWidgets.MultiPage(
+        header: (context) {
+          return pdfWidgets.Container(
+            alignment: pdfWidgets.Alignment.centerLeft,
+            margin: pdfWidgets.EdgeInsets.only(bottom: 20.0),
+            child: pdfWidgets.Column(
+              crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+              children: [
+                pdfWidgets.Row(children: [
+                  // pdfWidgets.Container(
+                  //     width: 50, height: 50, child: headerImage),
+                  pdfWidgets.SizedBox(width: 20),
+                  pdfWidgets.Column(
+                    crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
+                    children: [
+                      pdfWidgets.Container(
+                        child: pdfWidgets.Text(
+                          'Barangay Sinalhan Clinic',
+                          style: pdfWidgets.TextStyle(
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Inventory Summary Report',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: pdfWidgets.FontWeight.bold,
+                        ),
+                      ),
+                      pdfWidgets.Text(
+                        'Generated on: ${_getFormattedDate()}',
+                        style: pdfWidgets.TextStyle(
+                          fontSize: 10.0,
+                          color: PdfColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ]),
+              ],
+            ),
+          );
+        },
+        build: (context) => [
+          pdfWidgets.Table.fromTextArray(
+            data: [
+              ['Name', 'Category', 'Reason of Visit'],
+              ...data.map((item) => [
+                    item['name'],
+                    item['category'],
+                    item['reasonOfVisit'],
+                  ]),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return pdf;
+  }
+
+  String _getFormattedDate() {
+    final DateTime now = DateTime.now();
+    final DateFormat formatter = DateFormat('MMMM d, yyyy, hh:mm a');
+    return formatter.format(now);
+  }
+
+  void downloadPdfReport(pdfWidgets.Document pdf, String fileName) async {
+    final bytes = await pdf.save();
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = fileName;
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -101,6 +236,48 @@ class _SchedulesState extends State<Schedules> {
           ),
           child: Column(
             children: [
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () async {
+                    List<Map<String, dynamic>> inventoryData =
+                        await fetchInventoryData();
+                    Future<void> pdf =
+                        generateAndDownloadInventorySummaryReport(
+                            inventoryData);
+                  },
+                  child: Container(
+                    width: 150,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: secondaryaccent, // Set the fill color to red
+                      borderRadius:
+                          BorderRadius.circular(10.0), // Set the border radius
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.book,
+                          color: Colors.white,
+                        ),
+                        Center(
+                          child: Text(
+                            "Inventory Summary Report",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight
+                                    .bold // Set the font color to white
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.all(15.0),
                 color: Colors.white,

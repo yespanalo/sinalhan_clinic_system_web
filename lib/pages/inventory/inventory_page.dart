@@ -1488,7 +1488,7 @@ class _Inventory_PageState extends State<Inventory_Page>
                     ),
                     child: PaginatedDataTable(
                       columnSpacing:
-                          MediaQuery.of(context).size.width / (8.9 + 1),
+                          MediaQuery.of(context).size.width / (10 + 1),
                       rowsPerPage: rowsPerPage,
                       columns: [
                         DataColumn(label: Text('Medicine Name')),
