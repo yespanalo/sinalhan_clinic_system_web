@@ -153,74 +153,74 @@ Container IndividualPatientRecord(BuildContext context) {
   return Container(
     child: Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(
-              width: 300,
-              child: TextField(
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.deny(
-                      RegExp(r'[!@#<>?":_`~;[\]\\|=+)(*&^%$#@!,./\0-9]')),
-                  LengthLimitingTextInputFormatter(11),
-                ],
-                // controller: searchController,
-                // onChanged: (value) {
-                //   setState(() {
-                //     if (searchController.text.length == 0) {
-                //       patients = getPatientList();
-                //     } else {
-                //       patients = filterTableByDate();
-                //     }
-                //   });
-                // },
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(FontAwesomeIcons.magnifyingGlass),
-                  hintText: 'Search',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: const Color(0xffF7F7F7),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: const BorderSide(color: Colors.white),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ),
-            // SizedBox(
-            //   width: 100,
-            //   child: TextButton(
-            //       style: ButtonStyle(
-            //         padding: MaterialStateProperty.all<EdgeInsets>(
-            //             const EdgeInsets.all(15)),
-            //         // foregroundColor:
-            //         //     MaterialStateProperty.all<Color>(Colors.red),
-            //         backgroundColor:
-            //             MaterialStateProperty.all<Color>(secondaryaccent),
-            //         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-            //           RoundedRectangleBorder(
-            //             borderRadius: BorderRadius.circular(18.0),
-            //             side: BorderSide(color: secondaryaccent),
-            //           ),
-            //         ),
-            //       ),
-            //       onPressed: () {
-            //         Navigator.of(context).push(
-            //           new MaterialPageRoute(
-            //               builder: (_) => new categorySelection()),
-            //         );
-            //       },
-            //       child: Text("Add",
-            //           style: TextStyle(fontSize: 16, color: Colors.white))),
-            // )
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //     SizedBox(
+        //       width: 300,
+        //       child: TextField(
+        //         inputFormatters: <TextInputFormatter>[
+        //           FilteringTextInputFormatter.deny(
+        //               RegExp(r'[!@#<>?":_`~;[\]\\|=+)(*&^%$#@!,./\0-9]')),
+        //           LengthLimitingTextInputFormatter(11),
+        //         ],
+        //         // controller: searchController,
+        //         // onChanged: (value) {
+        //         //   setState(() {
+        //         //     if (searchController.text.length == 0) {
+        //         //       patients = getPatientList();
+        //         //     } else {
+        //         //       patients = filterTableByDate();
+        //         //     }
+        //         //   });
+        //         // },
+        //         decoration: InputDecoration(
+        //           prefixIcon: const Icon(FontAwesomeIcons.magnifyingGlass),
+        //           hintText: 'Search',
+        //           hintStyle: const TextStyle(color: Colors.grey),
+        //           filled: true,
+        //           fillColor: const Color(0xffF7F7F7),
+        //           focusedBorder: OutlineInputBorder(
+        //             borderSide: const BorderSide(color: Colors.white),
+        //             borderRadius: BorderRadius.circular(10),
+        //           ),
+        //           enabledBorder: UnderlineInputBorder(
+        //             borderSide: const BorderSide(color: Colors.white),
+        //             borderRadius: BorderRadius.circular(10),
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //     // SizedBox(
+        //     //   width: 100,
+        //     //   child: TextButton(
+        //     //       style: ButtonStyle(
+        //     //         padding: MaterialStateProperty.all<EdgeInsets>(
+        //     //             const EdgeInsets.all(15)),
+        //     //         // foregroundColor:
+        //     //         //     MaterialStateProperty.all<Color>(Colors.red),
+        //     //         backgroundColor:
+        //     //             MaterialStateProperty.all<Color>(secondaryaccent),
+        //     //         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        //     //           RoundedRectangleBorder(
+        //     //             borderRadius: BorderRadius.circular(18.0),
+        //     //             side: BorderSide(color: secondaryaccent),
+        //     //           ),
+        //     //         ),
+        //     //       ),
+        //     //       onPressed: () {
+        //     //         Navigator.of(context).push(
+        //     //           new MaterialPageRoute(
+        //     //               builder: (_) => new categorySelection()),
+        //     //         );
+        //     //       },
+        //     //       child: Text("Add",
+        //     //           style: TextStyle(fontSize: 16, color: Colors.white))),
+        //     // )
 
-            // )
-          ],
-        ),
+        //     // )
+        //   ],
+        // ),
         const SizedBox(
           height: 10,
         ),
